@@ -1,17 +1,12 @@
 {
-  "name": "lending-platform-monorepo",
+  "name": "lending-platform-backend",
   "version": "0.1.0",
   "private": true,
-  "workspaces": [
-    "frontend",
-    "backend"
-  ],
   "scripts": {
-    "dev:frontend": "npm run dev -w frontend",
-    "dev:backend": "npm run dev -w backend",
-    "build:frontend": "npm run build -w frontend",
-    "build:backend": "npm run build -w backend",
-    "dev": "npm run dev -w frontend & npm run dev -w backend"
+    "dev": "next dev -p 3001",
+    "build": "next build",
+    "start": "next start -p 3001",
+    "lint": "eslint"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",

@@ -38,19 +38,18 @@ const AuditLogSchema = new Schema<IAuditLog>(
 );
 
 // Prevent editing or deleting audit logs to ensure strict compliance
-AuditLogSchema.pre("validate", function (next: any) {
+AuditLogSchema.pre("validate", function (this: any) {
   if (!this.isNew) {
-    return next(new Error("Audit logs are append-only and cannot be modified."));
+    throw new Error("Audit logs are append-only and cannot be modified.");
   }
-  next();
 });
 
-AuditLogSchema.pre("deleteOne", { document: true, query: true }, function (next: any) {
-  next(new Error("Audit logs cannot be deleted."));
+AuditLogSchema.pre("deleteOne", { document: true, query: true }, function () {
+  throw new Error("Audit logs cannot be deleted.");
 });
 
-AuditLogSchema.pre("deleteMany", { document: false, query: true }, function (next: any) {
-  next(new Error("Audit logs cannot be deleted."));
+AuditLogSchema.pre("deleteMany", { document: false, query: true }, function () {
+  throw new Error("Audit logs cannot be deleted.");
 });
 
 export const AuditLog: Model<IAuditLog> =

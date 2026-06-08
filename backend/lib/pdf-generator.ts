@@ -122,7 +122,7 @@ export function getLoanAgreementTemplate(data: {
                 <td>${data.borrowerName}</td>
               </tr>
               <tr>
-                <td class="label">Borrower CNIC</td>
+                <td class="label">Borrower ID</td>
                 <td>${data.cnic}</td>
               </tr>
               <tr>
@@ -191,7 +191,7 @@ export function getNocTemplate(data: {
             <p>Date: ${new Date().toLocaleDateString()}</p>
             <p><strong>TO WHOM IT MAY CONCERN</strong></p>
             <br/>
-            <p>This is to certify that the loan facility with reference number <strong>${data.loanNumber}</strong> granted to <strong>Mr./Ms. ${data.borrowerName}</strong> bearing CNIC/Identity doc: <strong>${data.cnic}</strong> has been fully settled and closed on <strong>${data.closedDate}</strong>.</p>
+            <p>This is to certify that the loan facility with reference number <strong>${data.loanNumber}</strong> granted to <strong>Mr./Ms. ${data.borrowerName}</strong> bearing ID: <strong>${data.cnic}</strong> has been fully settled and closed on <strong>${data.closedDate}</strong>.</p>
             <p>LendEasy has received all outstanding dues including principal, interest, and penalties (if any) in full. As of today, there are no outstanding dues payable by the borrower under this loan account.</p>
             <p>Furthermore, all liens marked against the collateral submitted for this loan are hereby released. LendEasy has no further charge or claim on the borrower's assets with respect to this loan facility.</p>
           </div>

@@ -37,7 +37,6 @@ export async function connectToDatabase() {
     };
 
     cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongooseInstance) => {
-      console.log("✅ MongoDB Connected Successfully to frontend database");
       return mongooseInstance;
     });
   }

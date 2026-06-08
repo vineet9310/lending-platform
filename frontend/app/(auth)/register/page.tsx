@@ -10,7 +10,7 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/com
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
-import { Shield, Sparkles } from "lucide-react";
+import { Shield, Sparkles, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 
 const registerSchema = z.object({
@@ -33,6 +33,7 @@ type RegisterInput = z.infer<typeof registerSchema>;
 export default function RegisterPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
 
   const {
     register,
@@ -146,15 +147,28 @@ export default function RegisterPage() {
                   )}
                 </div>
 
-                {/* Password */}
                 <div className="space-y-1.5">
                   <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Password</label>
-                  <Input
-                    type="password"
-                    placeholder="••••••••"
-                    error={!!errors.password}
-                    {...register("password")}
-                  />
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      error={!!errors.password}
+                      className="pr-10"
+                      {...register("password")}
+                    />
+                    <button
+                      type="button"
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 focus:outline-none"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-5 w-5" />
+                      ) : (
+                        <Eye className="h-5 w-5" />
+                      )}
+                    </button>
+                  </div>
                   {errors.password && (
                     <p className="text-xs text-red-500">{errors.password.message}</p>
                   )}

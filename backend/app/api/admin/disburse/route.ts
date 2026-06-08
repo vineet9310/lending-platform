@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     const collateral = await Collateral.findOne({ application: applicationId });
 
     // Parse offered interest configuration
-    let interestType: 'flat' | 'reducing_balance' | 'compound' = 'reducing_balance';
+    let interestType: 'flat' | 'reducing_balance' | 'compound' | 'interest_only' = 'reducing_balance';
     try {
       if (application.internalNotes) {
         const parsed = JSON.parse(application.internalNotes);

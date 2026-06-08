@@ -35,20 +35,25 @@ export async function uploadFile(
 ): Promise<UploadResponse> {
   if (isCloudinaryConfigured) {
     try {
-      const result = await new Promise<any>((resolve, reject) => {
-        const uploadStream = cloudinary.uploader.upload_stream(
-          {
-            folder,
-            resource_type: "auto",
-            public_id: path.parse(fileName).name + "_" + Date.now(),
-          },
-          (error, result) => {
-            if (error) reject(error);
-            else resolve(result);
-          }
-        );
-        uploadStream.end(fileBuffer);
-      });
+      const result = await Promise.race([
+        new Promise<any>((resolve, reject) => {
+          const uploadStream = cloudinary.uploader.upload_stream(
+            {
+              folder,
+              resource_type: "auto",
+              public_id: path.parse(fileName).name + "_" + Date.now(),
+            },
+            (error, result) => {
+              if (error) reject(error);
+              else resolve(result);
+            }
+          );
+          uploadStream.end(fileBuffer);
+        }),
+        new Promise<never>((_, reject) =>
+          setTimeout(() => reject(new Error("Cloudinary upload timed out")), 4000)
+        )
+      ]);
 
       return {
         url: result.secure_url,

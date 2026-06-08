@@ -10,7 +10,7 @@ export interface ILoan extends Document {
   collateral?: mongoose.Types.ObjectId | ICollateral;
   principal: number;
   interestRate: number; // annual percentage
-  interestType: 'flat' | 'reducing_balance' | 'compound';
+  interestType: 'flat' | 'reducing_balance' | 'compound' | 'interest_only';
   tenureMonths: number;
   totalPayable: number;
   totalInterest: number;
@@ -38,7 +38,7 @@ const LoanSchema = new Schema<ILoan>(
     interestRate: { type: Number, required: true },
     interestType: {
       type: String,
-      enum: ['flat', 'reducing_balance', 'compound'],
+      enum: ['flat', 'reducing_balance', 'compound', 'interest_only'],
       required: true,
     },
     tenureMonths: { type: Number, required: true },
@@ -69,13 +69,12 @@ const LoanSchema = new Schema<ILoan>(
 );
 
 // Pre-save hook to generate loan number
-LoanSchema.pre("save", async function (next: any) {
+LoanSchema.pre("save", async function () {
   if (!this.loanNumber) {
     const year = new Date().getFullYear();
     const randomDigits = Math.floor(10000 + Math.random() * 90000); // 5 digits
     this.loanNumber = `LN-${year}-${randomDigits}`;
   }
-  next();
 });
 
 export const Loan: Model<ILoan> =

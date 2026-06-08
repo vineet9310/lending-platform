@@ -9,7 +9,8 @@ import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
 import { Select } from "@/components/ui/Select";
 import { Slider } from "@/components/ui/Slider";
-import { calculateEMI } from "@/lib/emi-calculator";
+import toast from "react-hot-toast";
+
 
 export default function LoanApplicationForm() {
   const { wizardData, updateWizardData, setWizardStep } = useAppStore();
@@ -24,27 +25,51 @@ export default function LoanApplicationForm() {
   } = useForm<LoanApplicationInput>({
     resolver: zodResolver(LoanApplicationSchema) as any,
     defaultValues: {
-      amountRequested: wizardData.amountRequested,
-      tenureMonths: wizardData.tenureMonths,
-      purpose: wizardData.purpose,
-      purposeDetail: wizardData.purposeDetail,
-      employmentType: wizardData.employmentType,
-      monthlyIncome: wizardData.monthlyIncome,
-      existingLoans: wizardData.existingLoans,
-    },
+      amountRequested: wizardData.amountRequested || "" as any,
+      tenureMonths: wizardData.tenureMonths || "" as any,
+      purpose: wizardData.purpose || "",
+      purposeDetail: wizardData.purposeDetail || "",
+      employmentType: wizardData.employmentType || "",
+      monthlyIncome: wizardData.monthlyIncome || "" as any,
+      existingLoans: wizardData.existingLoans !== undefined && wizardData.existingLoans !== "" ? wizardData.existingLoans : "" as any,
+      interestType: wizardData.interestType || "",
+    } as any,
   });
 
   const amountRequested = watch("amountRequested");
   const tenureMonths = watch("tenureMonths");
   const purpose = watch("purpose");
+  const interestType = watch("interestType") || "";
 
-  // Live calculation sidebar calculation
-  const defaultRate = 18; // default annual interest rate
-  const liveEmi = calculateEMI(amountRequested || 0, defaultRate, tenureMonths || 12, "reducing_balance");
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
 
-  const onSubmit = (data: LoanApplicationInput) => {
-    updateWizardData(data);
-    setWizardStep("documents");
+  const onSubmit = async (data: LoanApplicationInput) => {
+    setIsSubmitting(true);
+    try {
+      const res = await fetch("/api/loans/apply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          ...data,
+          action: "draft",
+          applicationId: wizardData.applicationId || undefined,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        throw new Error(json.error || "Failed to save draft details");
+      }
+      updateWizardData({
+        ...data,
+        applicationId: json.applicationId,
+      });
+      toast.success("Draft saved successfully!");
+      setWizardStep(3);
+    } catch (e: any) {
+      toast.error(e.message || "Failed to save draft. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -57,9 +82,20 @@ export default function LoanApplicationForm() {
             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               Loan Amount Requested ({currency})
             </label>
-            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-              {currency} {amountRequested?.toLocaleString()}
-            </span>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-semibold text-slate-500">{currency}</span>
+              <input
+                type="number"
+                min={10000}
+                max={5000000}
+                value={amountRequested || ""}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setValue("amountRequested", val, { shouldValidate: true });
+                }}
+                className="w-32 rounded-lg border border-slate-200 px-2.5 py-1 text-right text-sm font-bold text-blue-600 focus:border-blue-500 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-blue-400"
+              />
+            </div>
           </div>
           <Slider
             min={10000}
@@ -83,9 +119,20 @@ export default function LoanApplicationForm() {
             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               Tenure duration (Months)
             </label>
-            <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-              {tenureMonths} Months
-            </span>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                min={3}
+                max={60}
+                value={tenureMonths || ""}
+                onChange={(e) => {
+                  const val = Number(e.target.value);
+                  setValue("tenureMonths", val, { shouldValidate: true });
+                }}
+                className="w-20 rounded-lg border border-slate-200 px-2.5 py-1 text-right text-sm font-bold text-blue-600 focus:border-blue-500 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-blue-400"
+              />
+              <span className="text-sm font-semibold text-slate-500">Months</span>
+            </div>
           </div>
           <Slider
             min={3}
@@ -103,15 +150,30 @@ export default function LoanApplicationForm() {
           )}
         </div>
 
+        {/* Interest Scheme / Type */}
+        <div className="space-y-1.5 md:col-span-2">
+          <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Interest Payment Scheme</label>
+          <Select {...register("interestType")}>
+            <option value="">Please select payment scheme</option>
+            <option value="reducing_balance">Annually Interest (EMI bases par chukayein)</option>
+            <option value="interest_only">Monthly Interest (Sirf monthly interest chukayein, Principal end me)</option>
+          </Select>
+          {errors.interestType && (
+            <p className="text-xs text-red-500">{errors.interestType.message}</p>
+          )}
+        </div>
+
         {/* Purpose */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Loan Purpose</label>
           <Select {...register("purpose")}>
-            <option value="business">Business Expansion</option>
-            <option value="education">Education Expenses</option>
-            <option value="medical">Medical Emergencies</option>
-            <option value="purchase">Asset / Property Purchase</option>
+            <option value="">Please select purpose</option>
+            <option value="home">Home Purchase / Renovation</option>
+            <option value="business">Business Expansion / Capital</option>
             <option value="personal">Personal / Wedding Costs</option>
+            <option value="education">Education Expenses</option>
+            <option value="vehicle">Vehicle Purchase</option>
+            <option value="agriculture">Agricultural Expenses</option>
             <option value="other">Other</option>
           </Select>
           {errors.purpose && (
@@ -123,10 +185,11 @@ export default function LoanApplicationForm() {
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Employment Status</label>
           <Select {...register("employmentType")}>
+            <option value="">Please select status</option>
             <option value="salaried">Salaried Employee</option>
-            <option value="self_employed">Self-Employed (Business)</option>
-            <option value="student">Student</option>
-            <option value="unemployed">Unemployed</option>
+            <option value="self_employed">Self-Employed Professional</option>
+            <option value="business_owner">Business Owner / Entrepreneur</option>
+            <option value="freelancer">Freelancer / Independent</option>
           </Select>
           {errors.employmentType && (
             <p className="text-xs text-red-500">{errors.employmentType.message}</p>
@@ -178,27 +241,10 @@ export default function LoanApplicationForm() {
         )}
       </div>
 
-      {/* Live Calculator preview inside form */}
-      <div className="rounded-2xl border border-slate-100 bg-slate-50/50 p-4 dark:border-slate-800 dark:bg-slate-900/20">
-        <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Live Loan Estimate</h4>
-        <div className="grid grid-cols-3 gap-4 text-center">
-          <div>
-            <p className="text-[10px] text-slate-400 uppercase">Est. Monthly EMI</p>
-            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{currency} {liveEmi.emiAmount?.toLocaleString()}</p>
-          </div>
-          <div>
-            <p className="text-[10px] text-slate-400 uppercase">Total Interest</p>
-            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{currency} {liveEmi.totalInterest?.toLocaleString()}</p>
-          </div>
-          <div>
-            <p className="text-[10px] text-slate-400 uppercase">Total Payable</p>
-            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{currency} {liveEmi.totalPayable?.toLocaleString()}</p>
-          </div>
-        </div>
-      </div>
+
 
       <div className="flex justify-end pt-4 border-t border-slate-100 dark:border-slate-800/60">
-        <Button type="submit">
+        <Button type="submit" isLoading={isSubmitting}>
           Next: Upload Documents
         </Button>
       </div>

@@ -195,17 +195,19 @@ export default function BorrowerDocumentsPage() {
                     </TableRow>
 
                     {/* Identity Doc Back */}
-                    <TableRow>
-                      <TableCell className="font-bold text-xs">ID Document (Back)</TableCell>
-                      <TableCell className="text-xs text-slate-500 capitalize">{kyc.identityDoc.type}</TableCell>
-                      <TableCell className="text-right">
-                        <a href={kyc.identityDoc.backImageUrl} target="_blank" rel="noopener noreferrer">
-                          <Button size="sm" variant="outline" className="h-8 text-xs flex items-center gap-1 ml-auto">
-                            <ExternalLink className="h-3.5 w-3.5" /> View
-                          </Button>
-                        </a>
-                      </TableCell>
-                    </TableRow>
+                    {kyc.identityDoc.type !== "pan" && kyc.identityDoc.backImageUrl && (
+                      <TableRow>
+                        <TableCell className="font-bold text-xs">ID Document (Back)</TableCell>
+                        <TableCell className="text-xs text-slate-500 capitalize">{kyc.identityDoc.type}</TableCell>
+                        <TableCell className="text-right">
+                          <a href={kyc.identityDoc.backImageUrl} target="_blank" rel="noopener noreferrer">
+                            <Button size="sm" variant="outline" className="h-8 text-xs flex items-center gap-1 ml-auto">
+                              <ExternalLink className="h-3.5 w-3.5" /> View
+                            </Button>
+                          </a>
+                        </TableCell>
+                      </TableRow>
+                    )}
 
                     {/* Address Proof */}
                     <TableRow>

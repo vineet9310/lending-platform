@@ -212,13 +212,26 @@ export default function KYCReviewPage({ params }: { params: { applicationId: str
                   </a>
                 </div>
 
-                <div className="space-y-2 text-center border p-3 rounded-xl">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Identity Back ({kyc.identityDoc?.type})</span>
-                  <img src={kyc.identityDoc?.backImageUrl} alt="ID Back" className="h-32 w-full object-cover rounded-lg border bg-slate-50" />
-                  <a href={kyc.identityDoc?.backImageUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 hover:underline inline-flex items-center gap-0.5 mt-1 font-bold">
-                    Open Full Resolution <ExternalLink className="h-3 w-3" />
-                  </a>
-                </div>
+                {kyc.identityDoc?.type === "pan" ? (
+                  <div className="space-y-2 text-center border p-3 rounded-xl bg-slate-50/50 dark:bg-slate-900/10 flex flex-col justify-center items-center h-48">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Identity Back</span>
+                    <p className="text-xs text-slate-400 italic">Not applicable for PAN Card</p>
+                  </div>
+                ) : (
+                  <div className="space-y-2 text-center border p-3 rounded-xl">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Identity Back ({kyc.identityDoc?.type})</span>
+                    {kyc.identityDoc?.backImageUrl ? (
+                      <>
+                        <img src={kyc.identityDoc?.backImageUrl} alt="ID Back" className="h-32 w-full object-cover rounded-lg border bg-slate-50" />
+                        <a href={kyc.identityDoc?.backImageUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 hover:underline inline-flex items-center gap-0.5 mt-1 font-bold">
+                          Open Full Resolution <ExternalLink className="h-3 w-3" />
+                        </a>
+                      </>
+                    ) : (
+                      <p className="text-xs text-slate-400 italic py-8">No Back Image Uploaded</p>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Address bill & statements */}
@@ -300,21 +313,28 @@ export default function KYCReviewPage({ params }: { params: { applicationId: str
 
               <div className="space-y-2 border-b pb-3">
                 <p className="flex justify-between">
-                  <span className="text-slate-400">Decrypted CNIC:</span>
+                  <span className="text-slate-400">Decrypted ID ({kyc.identityDoc?.type?.toUpperCase()}):</span>
                   <span className="font-bold text-blue-600 dark:text-blue-400 text-sm tracking-wide bg-blue-50 px-2 py-0.5 rounded dark:bg-blue-950/20">
                     {kyc.identityDoc?.number}
                   </span>
                 </p>
-                <p className="flex justify-between">
-                  <span className="text-slate-400">CNIC Expiry:</span>
-                  <span className="font-bold text-slate-700 dark:text-slate-200">
-                    {new Date(kyc.identityDoc?.expiryDate).toLocaleDateString("en-PK")}
-                  </span>
-                </p>
+                {kyc.identityDoc?.expiryDate && kyc.identityDoc?.type !== "aadhaar" && kyc.identityDoc?.type !== "pan" ? (
+                  <p className="flex justify-between">
+                    <span className="text-slate-400">ID Expiry:</span>
+                    <span className="font-bold text-slate-700 dark:text-slate-200">
+                      {new Date(kyc.identityDoc?.expiryDate).toLocaleDateString("en-IN")}
+                    </span>
+                  </p>
+                ) : (
+                  <p className="flex justify-between">
+                    <span className="text-slate-400">ID Expiry:</span>
+                    <span className="font-bold text-slate-400 italic">No Expiry (Lifetime Validity)</span>
+                  </p>
+                )}
                 <p className="flex justify-between">
                   <span className="text-slate-400">Address Proof Date:</span>
                   <span className="font-bold text-slate-700 dark:text-slate-200">
-                    {new Date(kyc.addressProof?.issuedDate).toLocaleDateString("en-PK")}
+                    {new Date(kyc.addressProof?.issuedDate).toLocaleDateString("en-IN")}
                   </span>
                 </p>
               </div>

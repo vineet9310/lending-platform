@@ -12,7 +12,7 @@ export default function EMICalculator() {
   const [principal, setPrincipal] = useState(100000);
   const [rate, setRate] = useState(12);
   const [tenure, setTenure] = useState(12);
-  const [interestType, setInterestType] = useState<"flat" | "reducing_balance">("reducing_balance");
+  const [interestType, setInterestType] = useState<"flat" | "reducing_balance" | "interest_only">("reducing_balance");
 
   const results = calculateEMI(principal, rate, tenure, interestType);
   const currency = process.env.NEXT_PUBLIC_CURRENCY || "₹";
@@ -30,7 +30,17 @@ export default function EMICalculator() {
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Principal ({currency})</span>
-              <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{currency} {principal.toLocaleString("en-US")}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-semibold text-slate-500">{currency}</span>
+                <input
+                  type="number"
+                  min={10000}
+                  max={5000000}
+                  value={principal}
+                  onChange={(e) => setPrincipal(Number(e.target.value))}
+                  className="w-28 rounded-lg border border-slate-200 px-2 py-0.5 text-right text-xs font-bold text-blue-600 focus:border-blue-500 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-blue-400"
+                />
+              </div>
             </div>
             <Slider
               min={10000}
@@ -45,7 +55,18 @@ export default function EMICalculator() {
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Annual Interest Rate (%)</span>
-              <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{rate}%</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={5}
+                  max={36}
+                  step={0.5}
+                  value={rate}
+                  onChange={(e) => setRate(Number(e.target.value))}
+                  className="w-20 rounded-lg border border-slate-200 px-2 py-0.5 text-right text-xs font-bold text-blue-600 focus:border-blue-500 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-blue-400"
+                />
+                <span className="text-xs font-semibold text-slate-500">%</span>
+              </div>
             </div>
             <Slider
               min={5}
@@ -60,7 +81,17 @@ export default function EMICalculator() {
           <div className="space-y-2">
             <div className="flex justify-between items-center">
               <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Tenure (Months)</span>
-              <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{tenure} months</span>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={1}
+                  max={120}
+                  value={tenure}
+                  onChange={(e) => setTenure(Number(e.target.value))}
+                  className="w-20 rounded-lg border border-slate-200 px-2 py-0.5 text-right text-xs font-bold text-blue-600 focus:border-blue-500 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-blue-400"
+                />
+                <span className="text-xs font-semibold text-slate-500">months</span>
+              </div>
             </div>
             <Slider
               min={1}
@@ -77,6 +108,7 @@ export default function EMICalculator() {
             <Select value={interestType} onChange={(e: any) => setInterestType(e.target.value)}>
               <option value="reducing_balance">Reducing Balance (Standard)</option>
               <option value="flat">Flat Interest Rate</option>
+              <option value="interest_only">Monthly Interest (Interest Only)</option>
             </Select>
           </div>
         </CardContent>

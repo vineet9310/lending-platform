@@ -24,6 +24,7 @@ export const LoanApplicationSchema = z.object({
     .number()
     .min(0, { message: "Existing loans amount cannot be negative" })
     .default(0),
+  interestType: z.enum(['reducing_balance', 'interest_only']).default('reducing_balance'),
 });
 
 export type LoanApplicationInput = z.infer<typeof LoanApplicationSchema>;

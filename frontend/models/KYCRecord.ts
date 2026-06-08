@@ -6,11 +6,11 @@ export interface IKYCRecord extends Document {
   application: mongoose.Types.ObjectId | ILoanApplication;
   borrower: mongoose.Types.ObjectId | IUser;
   identityDoc: {
-    type: 'cnic' | 'passport' | 'driving_license';
+    type: 'aadhaar' | 'pan' | 'driving_license' | 'passport' | 'cnic';
     number: string; // encrypted
     frontImageUrl: string;
-    backImageUrl: string;
-    expiryDate: Date;
+    backImageUrl?: string;
+    expiryDate?: Date;
   };
   selfieUrl: string;
   addressProof: {
@@ -39,13 +39,13 @@ const KYCRecordSchema = new Schema<IKYCRecord>(
     identityDoc: {
       type: {
         type: String,
-        enum: ['cnic', 'passport', 'driving_license'],
+        enum: ['aadhaar', 'pan', 'driving_license', 'passport', 'cnic'],
         required: true,
       },
       number: { type: String, required: true },
       frontImageUrl: { type: String, required: true },
-      backImageUrl: { type: String, required: true },
-      expiryDate: { type: Date, required: true },
+      backImageUrl: { type: String, required: false },
+      expiryDate: { type: Date, required: false },
     },
     selfieUrl: { type: String, required: true },
     addressProof: {

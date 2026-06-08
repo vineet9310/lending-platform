@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { Progress } from "@/components/ui/Progress";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card";
@@ -14,7 +14,7 @@ import { useRouter } from "next/navigation";
 
 export default function ApplyPage() {
   const router = useRouter();
-  const { wizardStep, setWizardStep, wizardData, resetWizard } = useAppStore();
+  const { wizardStep, setWizardStep, wizardData, resetWizard, updateWizardData } = useAppStore();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submissionProgress, setSubmissionProgress] = useState("");
 
@@ -26,91 +26,43 @@ export default function ApplyPage() {
     { num: 5, name: "Final Review", desc: "Confirm submission", icon: ShieldCheck },
   ];
 
-  // Map steps to visual progress (wizardStep can be 1, 3, 4, 5 because Step 1 form covers Step 1 and 2)
+  // Map steps to visual progress
   const progressPercentage = wizardStep === 1 ? 20 : wizardStep === 3 ? 50 : wizardStep === 4 ? 75 : 100;
+
+  // Load draft on mount if available
+  useEffect(() => {
+    const fetchDraft = async () => {
+      try {
+        const res = await fetch("/api/loans/apply");
+        const data = await res.json();
+        if (data.hasDraft) {
+          updateWizardData(data.wizardData);
+          setWizardStep(data.wizardStep);
+          toast.success("Resumed your active application draft.");
+        }
+      } catch (e) {
+        console.error("Failed to load draft:", e);
+      }
+    };
+    fetchDraft();
+  }, [updateWizardData, setWizardStep]);
 
   const handleFinalSubmit = async () => {
     setIsSubmitting(true);
     try {
-      // Step 1: Submit loan application details
-      setSubmissionProgress("Creating loan application account...");
+      setSubmissionProgress("Submitting loan application...");
       const applyRes = await fetch("/api/loans/apply", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amountRequested: wizardData.amountRequested,
-          tenureMonths: wizardData.tenureMonths,
-          purpose: wizardData.purpose,
-          purposeDetail: wizardData.purposeDetail,
-          employmentType: wizardData.employmentType,
-          monthlyIncome: wizardData.monthlyIncome,
-          existingLoans: wizardData.existingLoans,
+          action: "submit",
+          applicationId: wizardData.applicationId,
         }),
       });
       const applyJson = await applyRes.json();
 
       if (!applyRes.ok) {
-        throw new Error(applyJson.error || "Failed to create loan application");
-      }
-
-      const { applicationId } = applyJson;
-
-      // Step 2: Upload KYC documents
-      setSubmissionProgress("Uploading identity & income verification proofs...");
-      const kycFormData = new FormData();
-      kycFormData.append("applicationId", applicationId);
-      kycFormData.append("identityDocType", wizardData.identityDocType);
-      kycFormData.append("identityDocNumber", wizardData.identityDocNumber);
-      kycFormData.append("identityDocExpiryDate", wizardData.identityDocExpiryDate);
-      kycFormData.append("addressDocType", wizardData.addressDocType);
-      kycFormData.append("addressDocIssuedDate", wizardData.addressDocIssuedDate);
-      kycFormData.append("incomeDocType", wizardData.incomeDocType);
-      
-      // Append files
-      if (wizardData.selfieFile) kycFormData.append("selfie", wizardData.selfieFile);
-      if (wizardData.identityFrontFile) kycFormData.append("identityFront", wizardData.identityFrontFile);
-      if (wizardData.identityBackFile) kycFormData.append("identityBack", wizardData.identityBackFile);
-      if (wizardData.addressProofFile) kycFormData.append("addressProof", wizardData.addressProofFile);
-      if (wizardData.incomeProofFile) kycFormData.append("incomeProof", wizardData.incomeProofFile);
-      if (wizardData.bankStatementFile) kycFormData.append("bankStatement", wizardData.bankStatementFile);
-      if (wizardData.employerLetterFile) kycFormData.append("employerLetter", wizardData.employerLetterFile);
-
-      const kycRes = await fetch("/api/kyc/submit", {
-        method: "POST",
-        body: kycFormData, // multipart
-      });
-      const kycJson = await kycRes.json();
-
-      if (!kycRes.ok) {
-        throw new Error(kycJson.error || "Failed to upload KYC documents");
-      }
-
-      // Step 3: Upload Collateral documents
-      setSubmissionProgress("Pledging asset collateral documents...");
-      const collateralFormData = new FormData();
-      collateralFormData.append("applicationId", applicationId);
-      collateralFormData.append("type", wizardData.collateralType);
-      collateralFormData.append("description", wizardData.collateralDescription);
-      collateralFormData.append("estimatedValue", wizardData.collateralValue.toString());
-      collateralFormData.append("location", wizardData.collateralLocation);
-      collateralFormData.append("registrationNumber", wizardData.collateralRegistrationNumber);
-
-      // Append collateral files
-      if (wizardData.collateralFiles) {
-        Object.keys(wizardData.collateralFiles).forEach((k) => {
-          const file = wizardData.collateralFiles[k];
-          if (file) collateralFormData.append(k, file);
-        });
-      }
-
-      const colRes = await fetch("/api/collateral/submit", {
-        method: "POST",
-        body: collateralFormData,
-      });
-      const colJson = await colRes.json();
-
-      if (!colRes.ok) {
-        throw new Error(colJson.error || "Failed to submit collateral details");
+        throw new Error(applyJson.error || "Failed to submit loan application");
       }
 
       // Complete Success!

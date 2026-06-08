@@ -91,13 +91,12 @@ const LoanApplicationSchema = new Schema<ILoanApplication>(
 );
 
 // Pre-save hook to generate application number
-LoanApplicationSchema.pre("save", async function (next: any) {
+LoanApplicationSchema.pre("save", async function () {
   if (!this.applicationNumber) {
     const year = new Date().getFullYear();
     const randomDigits = Math.floor(10000 + Math.random() * 90000); // 5 digits
     this.applicationNumber = `LA-${year}-${randomDigits}`;
   }
-  next();
 });
 
 export const LoanApplication: Model<ILoanApplication> =

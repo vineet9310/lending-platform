@@ -62,12 +62,11 @@ const PaymentSchema = new Schema<IPayment>(
 );
 
 // Pre-save hook to generate payment reference
-PaymentSchema.pre("save", async function (next: any) {
+PaymentSchema.pre("save", async function () {
   if (!this.paymentReference) {
     const randomDigits = Math.floor(100000 + Math.random() * 900000); // 6 digits
     this.paymentReference = `PAY-${randomDigits}`;
   }
-  next();
 });
 
 export const Payment: Model<IPayment> =

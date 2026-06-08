@@ -44,6 +44,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized access to this application" }, { status: 403 });
     }
 
+    // Save or update Collateral
+    let collateral = await Collateral.findOne({ application: applicationId });
+
     // Parse files
     const docTypes = ["ownership_deed", "valuation_report", "registration", "insurance", "other"];
     const documents: any[] = [];
@@ -60,14 +63,20 @@ export async function POST(req: Request) {
             uploadedAt: new Date(),
           });
         }
+      } else {
+        const existingDoc = collateral?.documents?.find((doc: any) => doc.docType === docType);
+        if (existingDoc) {
+          documents.push({
+            docType: existingDoc.docType,
+            fileUrl: existingDoc.fileUrl,
+            uploadedAt: existingDoc.uploadedAt || new Date(),
+          });
+        }
       }
     }
 
     // Calculate LTV Ratio = loan_amount / collateral_value * 100
     const ltvRatio = (application.amountRequested / estimatedValue) * 100;
-
-    // Save or update Collateral
-    let collateral = await Collateral.findOne({ application: applicationId });
 
     const collateralData = {
       application: new mongoose.Types.ObjectId(applicationId),

@@ -74,7 +74,7 @@ export default function LoanApprovalPage({ params }: { params: { applicationId: 
   // Decision States
   const [offeredAmount, setOfferedAmount] = useState("");
   const [offeredRate, setOfferedRate] = useState("18"); // default 18
-  const [interestType, setInterestType] = useState<"reducing_balance" | "flat">("reducing_balance");
+  const [interestType, setInterestType] = useState<"reducing_balance" | "flat" | "interest_only">("reducing_balance");
   const [internalNotes, setInternalNotes] = useState("");
   const [otpCode, setOtpCode] = useState("");
   const [otpSent, setOtpSent] = useState(false);
@@ -288,7 +288,7 @@ export default function LoanApprovalPage({ params }: { params: { applicationId: 
                 <div className="space-y-1">
                   <h4 className="font-bold text-slate-800 dark:text-slate-200">Identity & Income Verification (KYC)</h4>
                   <p className="text-[10px] text-slate-400">
-                    CNIC Type: {kyc?.identityDoc?.type?.toUpperCase() || "N/A"} | CNIC No: {kyc?.identityDoc?.number || "Encrypted"}
+                    Doc Type: {kyc?.identityDoc?.type?.toUpperCase() || "N/A"} | Doc No: {kyc?.identityDoc?.number || "Encrypted"}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
@@ -378,6 +378,7 @@ export default function LoanApprovalPage({ params }: { params: { applicationId: 
                 >
                   <option value="reducing_balance">Reducing Balance (Standard)</option>
                   <option value="flat">Flat Rate</option>
+                  <option value="interest_only">Monthly Interest (Interest Only)</option>
                 </Select>
               </div>
 

@@ -22,9 +22,56 @@ export async function POST(req: Request) {
 
     const emailLower = email.toLowerCase();
 
+    // Hashing password
+    const passwordHash = await bcrypt.hash(password, 12);
+
+    // CNIC Encryption (if provided)
+    const encryptedCnic = cnic ? encrypt(cnic) : undefined;
+
     // Check if email already exists
     const existingEmail = await User.findOne({ email: emailLower });
     if (existingEmail) {
+      if (!existingEmail.isEmailVerified) {
+        // Update user fields in case they changed during this registration attempt
+        existingEmail.fullName = fullName;
+        existingEmail.phone = phone;
+        existingEmail.passwordHash = passwordHash;
+        if (role) existingEmail.role = role;
+        if (encryptedCnic) existingEmail.cnic = encryptedCnic;
+        if (address) existingEmail.address = address;
+        await existingEmail.save();
+
+        // Generate 6-digit email verification OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        const key = `register:${emailLower}`;
+        await setOTP(key, otp, 300); // 5 minutes expiry
+
+        const appName = process.env.NEXT_PUBLIC_APP_NAME || "LendEasy";
+        await sendMail({
+          to: emailLower,
+          subject: `Verify your Email - ${appName}`,
+          html: `
+            <div style="font-family: sans-serif; padding: 20px; color: #333;">
+              <h2 style="color: #1e40af;">Verify your Email</h2>
+              <p>You have already registered. Please verify your email address using the new 6-digit OTP below:</p>
+              <div style="background: #f3f4f6; padding: 15px; border-radius: 8px; font-size: 24px; font-weight: bold; letter-spacing: 4px; text-align: center; margin: 20px 0; color: #1e40af;">
+                ${otp}
+              </div>
+              <p>This OTP is valid for 5 minutes and can only be used once.</p>
+            </div>
+          `,
+        });
+
+        return NextResponse.json(
+          {
+            message: "User already registered but not verified. A new verification OTP has been sent to your email.",
+            userId: existingEmail._id,
+            email: existingEmail.email,
+          },
+          { status: 201 }
+        );
+      }
+
       return NextResponse.json(
         { error: "A user with this email already exists" },
         { status: 400 }
@@ -34,17 +81,19 @@ export async function POST(req: Request) {
     // Check if phone already exists
     const existingPhone = await User.findOne({ phone });
     if (existingPhone) {
+      if (!existingPhone.isEmailVerified) {
+        return NextResponse.json(
+          { error: "A user with this phone number already exists (unverified)" },
+          { status: 400 }
+        );
+      }
       return NextResponse.json(
         { error: "A user with this phone number already exists" },
         { status: 400 }
       );
     }
 
-    // Hashing password
-    const passwordHash = await bcrypt.hash(password, 12);
 
-    // CNIC Encryption (if provided)
-    const encryptedCnic = cnic ? encrypt(cnic) : undefined;
 
     // Create User
     const newUser = await User.create({

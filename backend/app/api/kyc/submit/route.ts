@@ -33,8 +33,12 @@ export async function POST(req: Request) {
     const addressDocIssuedDate = formData.get("addressDocIssuedDate") as string;
     const incomeDocType = formData.get("incomeDocType") as string;
 
-    if (!applicationId || !identityDocType || !identityDocNumber || !identityDocExpiryDate || !addressDocType || !addressDocIssuedDate || !incomeDocType) {
+    if (!applicationId || !identityDocType || !identityDocNumber || !addressDocType || !addressDocIssuedDate || !incomeDocType) {
       return NextResponse.json({ error: "Missing required form fields" }, { status: 400 });
+    }
+
+    if (["driving_license", "passport"].includes(identityDocType) && !identityDocExpiryDate) {
+      return NextResponse.json({ error: "Expiry date is required for Driving License and Passport" }, { status: 400 });
     }
 
     // Verify application ownership
@@ -46,15 +50,54 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Unauthorized access to this application" }, { status: 403 });
     }
 
-    // Parse and upload files
-    const selfieFile = formData.get("selfie") as File;
-    const identityFrontFile = formData.get("identityFront") as File;
-    const identityBackFile = formData.get("identityBack") as File;
-    const addressProofFile = formData.get("addressProof") as File;
+    // Save or update KYC Record
+    let kycRecord = await KYCRecord.findOne({ application: applicationId });
+
+    // Parse files
+    const selfieFile = formData.get("selfie") as File | null;
+    const identityFrontFile = formData.get("identityFront") as File | null;
+    const identityBackFile = formData.get("identityBack") as File | null;
+    const addressProofFile = formData.get("addressProof") as File | null;
     const employerLetterFile = formData.get("employerLetter") as File | null;
 
-    if (!selfieFile || !identityFrontFile || !identityBackFile || !addressProofFile) {
-      return NextResponse.json({ error: "Missing required documents (Selfie, Identity Front/Back, Address Proof)" }, { status: 400 });
+    // Helper to upload single file
+    const uploadSingleHelper = async (file: File, folderName: string) => {
+      const buffer = Buffer.from(await file.arrayBuffer());
+      const res = await uploadFile(buffer, file.name, folderName);
+      if (!res.success) throw new Error(`Failed to upload ${file.name}`);
+      return res.url;
+    };
+
+    console.log("Starting KYC file uploads to Cloudinary/Local...");
+
+    const selfieUrl = (selfieFile && selfieFile.size > 0)
+      ? await uploadSingleHelper(selfieFile, "kyc/selfie")
+      : kycRecord?.selfieUrl;
+
+    const frontImageUrl = (identityFrontFile && identityFrontFile.size > 0)
+      ? await uploadSingleHelper(identityFrontFile, "kyc/identity")
+      : kycRecord?.identityDoc?.frontImageUrl;
+
+    const addressImageUrl = (addressProofFile && addressProofFile.size > 0)
+      ? await uploadSingleHelper(addressProofFile, "kyc/address")
+      : kycRecord?.addressProof?.imageUrl;
+
+    if (!selfieUrl || !frontImageUrl || !addressImageUrl) {
+      return NextResponse.json({ error: "Missing required documents (Selfie, Identity Front, Address Proof)" }, { status: 400 });
+    }
+
+    let backImageUrl = kycRecord?.identityDoc?.backImageUrl || "";
+    if (identityBackFile && identityBackFile.size > 0) {
+      backImageUrl = await uploadSingleHelper(identityBackFile, "kyc/identity");
+    }
+
+    if (identityDocType !== "pan" && !backImageUrl) {
+      return NextResponse.json({ error: "Missing identity document back photo" }, { status: 400 });
+    }
+
+    let employerLetterUrl = kycRecord?.employerLetter || "";
+    if (employerLetterFile && employerLetterFile.size > 0) {
+      employerLetterUrl = await uploadSingleHelper(employerLetterFile, "kyc/employer");
     }
 
     // Extract income documents
@@ -64,11 +107,25 @@ export async function POST(req: Request) {
       if (f) incomeFiles.push(f);
     }
     if (incomeFiles.length === 0) {
-      // Try fetching plain 'incomeProof' if uploaded singly
       const single = formData.get("incomeProof") as File | null;
       if (single) incomeFiles.push(single);
     }
-    if (incomeFiles.length === 0) {
+
+    const incomeProofUrls: string[] = [];
+    if (incomeFiles.length > 0) {
+      for (const file of incomeFiles) {
+        if (file && file.size > 0) {
+          const url = await uploadSingleHelper(file, "kyc/income");
+          incomeProofUrls.push(url);
+        }
+      }
+    }
+
+    const finalIncomeUrls = incomeProofUrls.length > 0 
+      ? incomeProofUrls 
+      : (kycRecord?.incomeProof?.documentUrls || []);
+
+    if (finalIncomeUrls.length === 0) {
       return NextResponse.json({ error: "At least one income proof document is required" }, { status: 400 });
     }
 
@@ -82,49 +139,27 @@ export async function POST(req: Request) {
       const single = formData.get("bankStatement") as File | null;
       if (single) bankFiles.push(single);
     }
-    if (bankFiles.length === 0) {
-      return NextResponse.json({ error: "At least one bank statement document is required" }, { status: 400 });
-    }
 
-    // Helper to upload single file
-    const uploadSingleHelper = async (file: File, folderName: string) => {
-      const buffer = Buffer.from(await file.arrayBuffer());
-      const res = await uploadFile(buffer, file.name, folderName);
-      if (!res.success) throw new Error(`Failed to upload ${file.name}`);
-      return res.url;
-    };
-
-    console.log("Starting KYC file uploads to Cloudinary/Local...");
-
-    const selfieUrl = await uploadSingleHelper(selfieFile, "kyc/selfie");
-    const frontImageUrl = await uploadSingleHelper(identityFrontFile, "kyc/identity");
-    const backImageUrl = await uploadSingleHelper(identityBackFile, "kyc/identity");
-    const addressImageUrl = await uploadSingleHelper(addressProofFile, "kyc/address");
-
-    let employerLetterUrl = "";
-    if (employerLetterFile && employerLetterFile.size > 0) {
-      employerLetterUrl = await uploadSingleHelper(employerLetterFile, "kyc/employer");
-    }
-
-    // Upload income proofs
-    const incomeProofUrls: string[] = [];
-    for (const file of incomeFiles) {
-      const url = await uploadSingleHelper(file, "kyc/income");
-      incomeProofUrls.push(url);
-    }
-
-    // Upload bank statements
     const bankStatementUrls: string[] = [];
-    for (const file of bankFiles) {
-      const url = await uploadSingleHelper(file, "kyc/bank");
-      bankStatementUrls.push(url);
+    if (bankFiles.length > 0) {
+      for (const file of bankFiles) {
+        if (file && file.size > 0) {
+          const url = await uploadSingleHelper(file, "kyc/bank");
+          bankStatementUrls.push(url);
+        }
+      }
+    }
+
+    const finalBankUrls = bankStatementUrls.length > 0
+      ? bankStatementUrls
+      : (kycRecord?.bankStatements || []);
+
+    if (finalBankUrls.length === 0) {
+      return NextResponse.json({ error: "At least one bank statement document is required" }, { status: 400 });
     }
 
     // Encrypt identity doc number (e.g. CNIC or Passport number)
     const encryptedIdentityNumber = encrypt(identityDocNumber);
-
-    // Save or update KYC Record
-    let kycRecord = await KYCRecord.findOne({ application: applicationId });
 
     const kycData = {
       application: new mongoose.Types.ObjectId(applicationId),
@@ -133,8 +168,8 @@ export async function POST(req: Request) {
         type: identityDocType as any,
         number: encryptedIdentityNumber,
         frontImageUrl,
-        backImageUrl,
-        expiryDate: new Date(identityDocExpiryDate),
+        backImageUrl: backImageUrl || undefined,
+        expiryDate: identityDocExpiryDate ? new Date(identityDocExpiryDate) : undefined,
       },
       selfieUrl,
       addressProof: {
@@ -144,10 +179,10 @@ export async function POST(req: Request) {
       },
       incomeProof: {
         type: incomeDocType as any,
-        documentUrls: incomeProofUrls,
+        documentUrls: finalIncomeUrls,
       },
       employerLetter: employerLetterUrl || undefined,
-      bankStatements: bankStatementUrls,
+      bankStatements: finalBankUrls,
       verificationStatus: "pending" as const,
     };
 

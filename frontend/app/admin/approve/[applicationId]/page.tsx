@@ -346,7 +346,7 @@ export default function LoanApprovalPage({ params }: { params: { applicationId: 
 
               {/* Configure offered Amount */}
               <div className="space-y-1">
-                <label className="text-xs font-semibold text-slate-500">Offered Principal Amount (PKR)</label>
+                <label className="text-xs font-semibold text-slate-500">Offered Principal Amount (INR)</label>
                 <Input
                   type="number"
                   value={offeredAmount}

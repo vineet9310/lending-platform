@@ -124,7 +124,7 @@ export default function CollateralVerifyPage({ params }: { params: { application
       const res = await fetch(`/api/collateral/verify/${collateral._id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ notes: `Verified at market value PKR ${marketValue}` }),
+        body: JSON.stringify({ notes: `Verified at market value ${currency} ${marketValue}` }),
       });
       const data = await res.json();
 
@@ -250,7 +250,7 @@ export default function CollateralVerifyPage({ params }: { params: { application
               <form onSubmit={handleUpdateValuation} className="space-y-4">
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-1.5">
-                    <label className="text-xs font-semibold text-slate-500">Official Market Value (PKR)</label>
+                    <label className="text-xs font-semibold text-slate-500">Official Market Value ({currency})</label>
                     <Input
                       type="number"
                       value={marketValue}

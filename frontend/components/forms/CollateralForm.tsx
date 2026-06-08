@@ -13,6 +13,7 @@ import toast from "react-hot-toast";
 
 export default function CollateralForm() {
   const { wizardData, updateWizardData, setWizardStep } = useAppStore();
+  const currency = process.env.NEXT_PUBLIC_CURRENCY || "₹";
   const [files, setFiles] = useState<Record<string, File | null>>({
     ownership_deed: null,
     valuation_report: null,
@@ -137,7 +138,7 @@ export default function CollateralForm() {
 
         {/* Estimated Value */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Estimated Market Value (PKR)</label>
+          <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Estimated Market Value ({currency})</label>
           <Input
             type="number"
             placeholder="e.g. 500000"

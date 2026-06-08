@@ -7,7 +7,7 @@ export const CollateralSchema = z.object({
   description: z.string().min(10, { message: "Description must be at least 10 characters long" }),
   estimatedValue: z.coerce
     .number()
-    .min(1000, { message: "Estimated value must be at least PKR 1,000" }),
+    .min(1000, { message: "Estimated value must be at least INR 1,000" }),
   location: z.string().max(300).optional().or(z.literal("")),
   registrationNumber: z.string().max(100).optional().or(z.literal("")),
 });

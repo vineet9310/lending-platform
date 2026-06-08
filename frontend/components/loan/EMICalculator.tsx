@@ -15,7 +15,7 @@ export default function EMICalculator() {
   const [interestType, setInterestType] = useState<"flat" | "reducing_balance">("reducing_balance");
 
   const results = calculateEMI(principal, rate, tenure, interestType);
-  const currency = process.env.NEXT_PUBLIC_CURRENCY || "PKR";
+  const currency = process.env.NEXT_PUBLIC_CURRENCY || "₹";
 
   return (
     <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
@@ -29,8 +29,8 @@ export default function EMICalculator() {
           {/* Amount */}
           <div className="space-y-2">
             <div className="flex justify-between items-center">
-              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Principal (PKR)</span>
-              <span className="text-sm font-bold text-blue-600 dark:text-blue-400">PKR {principal.toLocaleString("en-US")}</span>
+              <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">Principal ({currency})</span>
+              <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{currency} {principal.toLocaleString("en-US")}</span>
             </div>
             <Slider
               min={10000}

@@ -3,8 +3,8 @@ import { z } from "zod";
 export const LoanApplicationSchema = z.object({
   amountRequested: z.coerce
     .number()
-    .min(10000, { message: "Minimum loan amount is PKR 10,000" })
-    .max(5000000, { message: "Maximum loan amount is PKR 5,000,000" }),
+    .min(10000, { message: "Minimum loan amount is INR 10,000" })
+    .max(5000000, { message: "Maximum loan amount is INR 5,000,000" }),
   tenureMonths: z.coerce
     .number()
     .int()
@@ -19,7 +19,7 @@ export const LoanApplicationSchema = z.object({
   }),
   monthlyIncome: z.coerce
     .number()
-    .min(5000, { message: "Monthly income must be at least PKR 5,000" }),
+    .min(5000, { message: "Monthly income must be at least INR 5,000" }),
   existingLoans: z.coerce
     .number()
     .min(0, { message: "Existing loans amount cannot be negative" })

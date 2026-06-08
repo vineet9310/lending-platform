@@ -75,7 +75,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-500">Minimum Loan Amount (PKR)</label>
+                  <label className="text-xs font-semibold text-slate-500">Minimum Loan Amount (INR)</label>
                   <Input
                     type="number"
                     value={minAmount}
@@ -85,7 +85,7 @@ export default function SettingsPage() {
                 </div>
 
                 <div className="space-y-1.5">
-                  <label className="text-xs font-semibold text-slate-500">Maximum Loan Amount (PKR)</label>
+                  <label className="text-xs font-semibold text-slate-500">Maximum Loan Amount (INR)</label>
                   <Input
                     type="number"
                     value={maxAmount}

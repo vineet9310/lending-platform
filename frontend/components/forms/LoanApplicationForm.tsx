@@ -13,6 +13,7 @@ import { calculateEMI } from "@/lib/emi-calculator";
 
 export default function LoanApplicationForm() {
   const { wizardData, updateWizardData, setWizardStep } = useAppStore();
+  const currency = process.env.NEXT_PUBLIC_CURRENCY || "PKR";
 
   const {
     register,
@@ -43,7 +44,7 @@ export default function LoanApplicationForm() {
 
   const onSubmit = (data: LoanApplicationInput) => {
     updateWizardData(data);
-    setWizardStep(3); // Go to step 3 (KYC Upload)
+    setWizardStep("documents");
   };
 
   return (
@@ -54,10 +55,10 @@ export default function LoanApplicationForm() {
         <div className="space-y-2 md:col-span-2">
           <div className="flex items-center justify-between">
             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-              Loan Amount Requested (PKR)
+              Loan Amount Requested ({currency})
             </label>
             <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-              PKR {amountRequested?.toLocaleString()}
+              {currency} {amountRequested?.toLocaleString()}
             </span>
           </div>
           <Slider
@@ -68,8 +69,8 @@ export default function LoanApplicationForm() {
             onChange={(val) => setValue("amountRequested", val)}
           />
           <div className="flex justify-between text-xs text-slate-400">
-            <span>PKR 10,000</span>
-            <span>PKR 5,000,000</span>
+            <span>{currency} 10,000</span>
+            <span>{currency} 5,000,000</span>
           </div>
           {errors.amountRequested && (
             <p className="text-xs text-red-500">{errors.amountRequested.message}</p>
@@ -80,38 +81,37 @@ export default function LoanApplicationForm() {
         <div className="space-y-2 md:col-span-2">
           <div className="flex items-center justify-between">
             <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-              Tenure (Months)
+              Tenure duration (Months)
             </label>
             <span className="text-lg font-bold text-blue-600 dark:text-blue-400">
-              {tenureMonths} Months ({Math.round((tenureMonths / 12) * 10) / 10} Years)
+              {tenureMonths} Months
             </span>
           </div>
           <Slider
-            min={1}
-            max={360}
+            min={3}
+            max={60}
             step={1}
             value={tenureMonths}
             onChange={(val) => setValue("tenureMonths", val)}
           />
           <div className="flex justify-between text-xs text-slate-400">
-            <span>1 Month</span>
-            <span>360 Months</span>
+            <span>3 Months</span>
+            <span>60 Months</span>
           </div>
           {errors.tenureMonths && (
             <p className="text-xs text-red-500">{errors.tenureMonths.message}</p>
           )}
         </div>
 
-        {/* Loan Purpose */}
+        {/* Purpose */}
         <div className="space-y-1.5">
           <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Loan Purpose</label>
           <Select {...register("purpose")}>
-            <option value="personal">Personal Loan</option>
             <option value="business">Business Expansion</option>
-            <option value="home">Home Construction / Renovation</option>
-            <option value="education">Education Fees</option>
-            <option value="vehicle">Vehicle Purchase</option>
-            <option value="agriculture">Agriculture Inputs</option>
+            <option value="education">Education Expenses</option>
+            <option value="medical">Medical Emergencies</option>
+            <option value="purchase">Asset / Property Purchase</option>
+            <option value="personal">Personal / Wedding Costs</option>
             <option value="other">Other</option>
           </Select>
           {errors.purpose && (
@@ -124,9 +124,9 @@ export default function LoanApplicationForm() {
           <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Employment Status</label>
           <Select {...register("employmentType")}>
             <option value="salaried">Salaried Employee</option>
-            <option value="self_employed">Self Employed Individual</option>
-            <option value="business_owner">Business Owner</option>
-            <option value="freelancer">Freelancer</option>
+            <option value="self_employed">Self-Employed (Business)</option>
+            <option value="student">Student</option>
+            <option value="unemployed">Unemployed</option>
           </Select>
           {errors.employmentType && (
             <p className="text-xs text-red-500">{errors.employmentType.message}</p>
@@ -135,7 +135,7 @@ export default function LoanApplicationForm() {
 
         {/* Monthly Income */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Monthly Net Income (PKR)</label>
+          <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Monthly Net Income ({currency})</label>
           <Input
             type="number"
             placeholder="e.g. 50000"
@@ -149,7 +149,7 @@ export default function LoanApplicationForm() {
 
         {/* Existing Loans */}
         <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Existing Monthly EMI Outflow (PKR)</label>
+          <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Existing Monthly EMI Outflow ({currency})</label>
           <Input
             type="number"
             placeholder="e.g. 0"
@@ -184,15 +184,15 @@ export default function LoanApplicationForm() {
         <div className="grid grid-cols-3 gap-4 text-center">
           <div>
             <p className="text-[10px] text-slate-400 uppercase">Est. Monthly EMI</p>
-            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">PKR {liveEmi.emiAmount?.toLocaleString()}</p>
+            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{currency} {liveEmi.emiAmount?.toLocaleString()}</p>
           </div>
           <div>
             <p className="text-[10px] text-slate-400 uppercase">Total Interest</p>
-            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">PKR {liveEmi.totalInterest?.toLocaleString()}</p>
+            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{currency} {liveEmi.totalInterest?.toLocaleString()}</p>
           </div>
           <div>
             <p className="text-[10px] text-slate-400 uppercase">Total Payable</p>
-            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">PKR {liveEmi.totalPayable?.toLocaleString()}</p>
+            <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{currency} {liveEmi.totalPayable?.toLocaleString()}</p>
           </div>
         </div>
       </div>

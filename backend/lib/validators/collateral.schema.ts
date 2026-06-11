@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const CollateralSchema = z.object({
-  type: z.enum(['real_estate', 'gold', 'vehicle', 'fixed_deposit', 'shares', 'machinery', 'other'], {
+  type: z.enum(['real_estate', 'gold', 'vehicle', 'fixed_deposit', 'shares', 'machinery', 'other', 'blank_cheque'], {
     message: "Please select a valid collateral type",
   }),
   description: z.string().min(10, { message: "Description must be at least 10 characters long" }),

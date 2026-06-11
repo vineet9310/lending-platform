@@ -48,7 +48,7 @@ export async function POST(req: Request) {
     let collateral = await Collateral.findOne({ application: applicationId });
 
     // Parse files
-    const docTypes = ["ownership_deed", "valuation_report", "registration", "insurance", "other"];
+    const docTypes = ["ownership_deed", "valuation_report", "registration", "insurance", "other", "blank_cheque", "asset_image"];
     const documents: any[] = [];
 
     for (const docType of docTypes) {

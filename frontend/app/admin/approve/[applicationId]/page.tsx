@@ -62,8 +62,8 @@ interface Collateral {
   };
 }
 
-export default function LoanApprovalPage({ params }: { params: { applicationId: string } }) {
-  const { applicationId } = params;
+export default function LoanApprovalPage({ params }: { params: Promise<{ applicationId: string }> }) {
+  const { applicationId } = React.use(params);
   const router = useRouter();
 
   const [app, setApp] = useState<Application | null>(null);

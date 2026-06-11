@@ -7,7 +7,7 @@ import toast from "react-hot-toast";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Input";
-import { ArrowLeft, Check, X, ShieldAlert, Activity, ExternalLink } from "lucide-react";
+import { ArrowLeft, Check, X, ShieldAlert, Activity, ExternalLink, User, Mail, Phone, Fingerprint, Calendar, MapPin, DollarSign, Clock, FileText, Landmark, Briefcase, FileSpreadsheet } from "lucide-react";
 
 interface Application {
   _id: string;
@@ -53,8 +53,8 @@ interface KYCRecord {
   verificationStatus: string;
 }
 
-export default function KYCReviewPage({ params }: { params: { applicationId: string } }) {
-  const { applicationId } = params;
+export default function KYCReviewPage({ params }: { params: Promise<{ applicationId: string }> }) {
+  const { applicationId } = React.use(params);
   const router = useRouter();
 
   const [application, setApplication] = useState<Application | null>(null);
@@ -168,105 +168,151 @@ export default function KYCReviewPage({ params }: { params: { applicationId: str
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="space-y-1">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-800 dark:text-white flex items-center gap-2">
-            <ShieldAlert className="h-6 w-6 text-blue-600" /> KYC Verification Review
-          </h1>
-          <p className="text-xs text-slate-400">Reviewing application: {application.applicationNumber} ({application.borrower?.fullName})</p>
+      {/* Premium Header Status Banner */}
+      <div className="rounded-2xl border border-slate-200/80 bg-white p-5 dark:border-slate-800 dark:bg-slate-950 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="flex items-center gap-3">
+          <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-blue-50 text-blue-600 dark:bg-blue-950/40">
+            <ShieldAlert className="h-6 w-6" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h1 className="text-lg font-bold text-slate-900 dark:text-white">KYC Verification Review</h1>
+              <span className="text-[10px] font-bold bg-amber-50 text-amber-600 border border-amber-200/60 px-2 py-0.5 rounded-full dark:bg-amber-950/20">
+                Pending Verification
+              </span>
+            </div>
+            <p className="text-xs text-slate-400">
+              Application Ref: <span className="font-semibold text-slate-700 dark:text-slate-350">{application.applicationNumber}</span> | Applicant: <span className="font-semibold text-slate-700 dark:text-slate-350">{application.borrower?.fullName}</span>
+            </p>
+          </div>
         </div>
-        <Link href="/agent/applications">
-          <Button variant="outline" size="sm" className="h-9 text-xs flex items-center gap-1.5">
-            <ArrowLeft className="h-4 w-4" /> Back to Queue
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+          <Link href="/agent/applications">
+            <Button variant="outline" size="sm" className="h-9 text-xs flex items-center gap-1.5 border-slate-200 hover:bg-slate-50">
+              <ArrowLeft className="h-4 w-4" /> Back to Queue
+            </Button>
+          </Link>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
-        {/* Left column: Application & document details */}
+        {/* Left Column: Auditing Files & Document Verification */}
         <div className="lg:col-span-2 space-y-6">
           
-          {/* Document Display Panel */}
-          <Card className="border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-950">
-            <CardHeader>
-              <CardTitle className="text-base font-bold">Uploaded Document Verification Gallery</CardTitle>
-              <CardDescription>Click links to view high-resolution image files in new tabs</CardDescription>
+          {/* Document Verification Gallery */}
+          <Card className="border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-950 shadow-sm">
+            <CardHeader className="border-b border-slate-100 dark:border-slate-800/60 pb-4">
+              <CardTitle className="text-sm font-bold text-slate-900 dark:text-white">Primary Identity Documents</CardTitle>
+              <CardDescription>Verify photograph authenticity and check name matches on ID credentials.</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-6">
+            <CardContent className="pt-6 space-y-6">
               {/* Selfie & ID documents */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-                <div className="space-y-2 text-center border p-3 rounded-xl">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
+                <div className="space-y-2.5 text-center border border-slate-100 p-4 rounded-2xl dark:border-slate-850 hover:shadow-md hover:border-slate-200 transition-all bg-slate-50/25 dark:bg-slate-950">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Selfie Photograph</span>
-                  <img src={kyc.selfieUrl} alt="Selfie" className="h-32 w-full object-cover rounded-lg border bg-slate-50" />
-                  <a href={kyc.selfieUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 hover:underline inline-flex items-center gap-0.5 mt-1 font-bold">
+                  <div className="overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800">
+                    <img src={kyc.selfieUrl} alt="Selfie" className="h-36 w-full object-cover bg-slate-55/40 hover:scale-105 transition-all duration-300" />
+                  </div>
+                  <a href={kyc.selfieUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-655 hover:underline inline-flex items-center gap-1 mt-1.5 font-bold">
                     Open Full Resolution <ExternalLink className="h-3 w-3" />
                   </a>
                 </div>
 
-                <div className="space-y-2 text-center border p-3 rounded-xl">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Identity Front ({kyc.identityDoc?.type})</span>
-                  <img src={kyc.identityDoc?.frontImageUrl} alt="ID Front" className="h-32 w-full object-cover rounded-lg border bg-slate-50" />
-                  <a href={kyc.identityDoc?.frontImageUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 hover:underline inline-flex items-center gap-0.5 mt-1 font-bold">
+                <div className="space-y-2.5 text-center border border-slate-100 p-4 rounded-2xl dark:border-slate-850 hover:shadow-md hover:border-slate-200 transition-all bg-slate-50/25 dark:bg-slate-950">
+                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Identity Front ({kyc.identityDoc?.type?.toUpperCase()})</span>
+                  <div className="overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800">
+                    <img src={kyc.identityDoc?.frontImageUrl} alt="ID Front" className="h-36 w-full object-cover bg-slate-55/40 hover:scale-105 transition-all duration-300" />
+                  </div>
+                  <a href={kyc.identityDoc?.frontImageUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-655 hover:underline inline-flex items-center gap-1 mt-1.5 font-bold">
                     Open Full Resolution <ExternalLink className="h-3 w-3" />
                   </a>
                 </div>
 
                 {kyc.identityDoc?.type === "pan" ? (
-                  <div className="space-y-2 text-center border p-3 rounded-xl bg-slate-50/50 dark:bg-slate-900/10 flex flex-col justify-center items-center h-48">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Identity Back</span>
-                    <p className="text-xs text-slate-400 italic">Not applicable for PAN Card</p>
+                  <div className="space-y-2.5 text-center border border-slate-100 p-4 rounded-2xl dark:border-slate-850 bg-slate-50/50 dark:bg-slate-900/10 flex flex-col justify-center items-center h-[218px]">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-2">Identity Back</span>
+                    <p className="text-xs text-slate-450 italic">Not applicable for PAN Card</p>
                   </div>
                 ) : (
-                  <div className="space-y-2 text-center border p-3 rounded-xl">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Identity Back ({kyc.identityDoc?.type})</span>
+                  <div className="space-y-2.5 text-center border border-slate-100 p-4 rounded-2xl dark:border-slate-850 hover:shadow-md hover:border-slate-200 transition-all bg-slate-50/25 dark:bg-slate-950">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Identity Back ({kyc.identityDoc?.type?.toUpperCase()})</span>
                     {kyc.identityDoc?.backImageUrl ? (
                       <>
-                        <img src={kyc.identityDoc?.backImageUrl} alt="ID Back" className="h-32 w-full object-cover rounded-lg border bg-slate-50" />
-                        <a href={kyc.identityDoc?.backImageUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 hover:underline inline-flex items-center gap-0.5 mt-1 font-bold">
+                        <div className="overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800">
+                          <img src={kyc.identityDoc?.backImageUrl} alt="ID Back" className="h-36 w-full object-cover bg-slate-55/40 hover:scale-105 transition-all duration-300" />
+                        </div>
+                        <a href={kyc.identityDoc?.backImageUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-655 hover:underline inline-flex items-center gap-1 mt-1.5 font-bold">
                           Open Full Resolution <ExternalLink className="h-3 w-3" />
                         </a>
                       </>
                     ) : (
-                      <p className="text-xs text-slate-400 italic py-8">No Back Image Uploaded</p>
+                      <div className="flex items-center justify-center h-36 bg-slate-55/40 rounded-xl border border-slate-200/40">
+                        <p className="text-xs text-slate-400 italic">No Back Image Uploaded</p>
+                      </div>
                     )}
                   </div>
                 )}
               </div>
+            </CardContent>
+          </Card>
 
-              {/* Address bill & statements */}
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <div className="space-y-2 text-center border p-3 rounded-xl">
-                  <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Address Proof ({kyc.addressProof?.type?.replace("_", " ")})</span>
-                  <img src={kyc.addressProof?.imageUrl} alt="Address proof" className="h-40 w-full object-cover rounded-lg border bg-slate-50" />
-                  <a href={kyc.addressProof?.imageUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-600 hover:underline inline-flex items-center gap-0.5 mt-1 font-bold">
-                    Open Full Resolution <ExternalLink className="h-3 w-3" />
-                  </a>
+          {/* Address & Income Statements Audit Panel */}
+          <Card className="border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-950 shadow-sm">
+            <CardHeader className="border-b border-slate-100 dark:border-slate-800/60 pb-4">
+              <CardTitle className="text-sm font-bold text-slate-900 dark:text-white">Address & Financial Verification</CardTitle>
+              <CardDescription>Audit residency details and cross-check bank statement inflows with stated income.</CardDescription>
+            </CardHeader>
+            <CardContent className="pt-6 space-y-6">
+              <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                {/* Address proof */}
+                <div className="space-y-3 border border-slate-100 p-4 rounded-2xl dark:border-slate-850 hover:shadow-md hover:border-slate-200 transition-all bg-slate-50/25 dark:bg-slate-950">
+                  <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-bold text-slate-450 uppercase tracking-wider">Address Proof ({kyc.addressProof?.type?.replace("_", " ")})</span>
+                  </div>
+                  <div className="overflow-hidden rounded-xl border border-slate-100 dark:border-slate-800">
+                    <img src={kyc.addressProof?.imageUrl} alt="Address proof" className="h-44 w-full object-cover bg-slate-55/40 hover:scale-102 transition-all duration-350" />
+                  </div>
+                  <div className="text-center">
+                    <a href={kyc.addressProof?.imageUrl} target="_blank" rel="noreferrer" className="text-[10px] text-blue-655 hover:underline inline-flex items-center gap-1 font-bold">
+                      Open Full Resolution <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </div>
                 </div>
 
-                <div className="flex flex-col justify-between border p-4 rounded-xl text-left bg-slate-50/50 dark:bg-slate-900/10">
-                  <div className="space-y-3">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Verify Document Links</span>
+                {/* Verification Links Matrix */}
+                <div className="border border-slate-100 p-5 rounded-2xl bg-slate-50/40 dark:bg-slate-900/10 dark:border-slate-850/60 flex flex-col justify-between">
+                  <div className="space-y-4">
+                    <span className="text-[10px] font-bold text-slate-450 uppercase tracking-wider block border-b border-slate-200/50 pb-2 dark:border-slate-850">
+                      Supporting Verification Files
+                    </span>
                     
                     {/* Income proof */}
-                    <div className="text-xs">
-                      <p className="font-bold text-slate-700 dark:text-slate-200">Income Proof Type: <span className="capitalize">{kyc.incomeProof?.type?.replace("_", " ")}</span></p>
-                      <div className="mt-1 flex flex-wrap gap-2">
+                    <div className="text-xs space-y-2">
+                      <div className="flex items-center gap-1.5 text-slate-650 dark:text-slate-350">
+                        <FileSpreadsheet className="h-4.5 w-4.5 text-blue-500 flex-shrink-0" />
+                        <p className="font-semibold text-slate-700 dark:text-slate-300">
+                          Income Proof: <span className="font-bold text-slate-800 dark:text-slate-150 capitalize">{kyc.incomeProof?.type?.replace("_", " ")}</span>
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 pl-6">
                         {kyc.incomeProof?.documentUrls?.map((url, i) => (
-                          <a key={i} href={url} target="_blank" rel="noreferrer" className="bg-white border text-blue-600 px-2.5 py-1 rounded-lg hover:underline text-[10px] font-semibold dark:bg-slate-950 dark:border-slate-800 flex items-center gap-1">
-                            Income Document #{i + 1} <ExternalLink className="h-2.5 w-2.5" />
+                          <a key={i} href={url} target="_blank" rel="noreferrer" className="bg-white border border-slate-200 text-blue-600 px-3 py-1.5 rounded-xl hover:bg-blue-50/35 hover:underline text-[10px] font-semibold dark:bg-slate-950 dark:border-slate-800 flex items-center gap-1 shadow-sm">
+                            Income Document #{i + 1} <ExternalLink className="h-3 w-3 text-blue-500" />
                           </a>
                         ))}
                       </div>
                     </div>
 
                     {/* Bank Statements */}
-                    <div className="text-xs">
-                      <p className="font-bold text-slate-700 dark:text-slate-200">Bank Statements (3-6 Months):</p>
-                      <div className="mt-1 flex flex-wrap gap-2">
+                    <div className="text-xs space-y-2 border-t border-slate-200/40 pt-3 dark:border-slate-850/60">
+                      <div className="flex items-center gap-1.5 text-slate-650 dark:text-slate-355">
+                        <Landmark className="h-4.5 w-4.5 text-blue-500 flex-shrink-0" />
+                        <p className="font-semibold text-slate-700 dark:text-slate-300">Bank Statements (3-6 Months)</p>
+                      </div>
+                      <div className="flex flex-wrap gap-2 pl-6">
                         {kyc.bankStatements?.map((url, i) => (
-                          <a key={i} href={url} target="_blank" rel="noreferrer" className="bg-white border text-blue-600 px-2.5 py-1 rounded-lg hover:underline text-[10px] font-semibold dark:bg-slate-950 dark:border-slate-800 flex items-center gap-1">
-                            Bank Statement #{i + 1} <ExternalLink className="h-2.5 w-2.5" />
+                          <a key={i} href={url} target="_blank" rel="noreferrer" className="bg-white border border-slate-200 text-blue-600 px-3 py-1.5 rounded-xl hover:bg-blue-50/35 hover:underline text-[10px] font-semibold dark:bg-slate-950 dark:border-slate-800 flex items-center gap-1 shadow-sm">
+                            Bank Statement #{i + 1} <ExternalLink className="h-3 w-3 text-blue-500" />
                           </a>
                         ))}
                       </div>
@@ -274,11 +320,16 @@ export default function KYCReviewPage({ params }: { params: { applicationId: str
 
                     {/* Employer letter */}
                     {kyc.employerLetter && (
-                      <div className="text-xs">
-                        <p className="font-bold text-slate-700 dark:text-slate-200">Employer Verification Letter:</p>
-                        <a href={kyc.employerLetter} target="_blank" rel="noreferrer" className="mt-1 bg-white border text-blue-600 px-2.5 py-1 rounded-lg hover:underline text-[10px] font-semibold dark:bg-slate-950 dark:border-slate-800 inline-flex items-center gap-1">
-                          View Letter File <ExternalLink className="h-2.5 w-2.5" />
-                        </a>
+                      <div className="text-xs space-y-2 border-t border-slate-200/40 pt-3 dark:border-slate-850/60">
+                        <div className="flex items-center gap-1.5 text-slate-650 dark:text-slate-355">
+                          <Briefcase className="h-4.5 w-4.5 text-blue-500 flex-shrink-0" />
+                          <p className="font-semibold text-slate-700 dark:text-slate-300">Employer Verification Letter</p>
+                        </div>
+                        <div className="pl-6">
+                          <a href={kyc.employerLetter} target="_blank" rel="noreferrer" className="bg-white border border-slate-200 text-blue-600 px-3 py-1.5 rounded-xl hover:bg-blue-50/35 hover:underline text-[10px] font-semibold dark:bg-slate-950 dark:border-slate-800 inline-flex items-center gap-1 shadow-sm">
+                            View Letter File <ExternalLink className="h-3 w-3 text-blue-500" />
+                          </a>
+                        </div>
                       </div>
                     )}
                   </div>
@@ -288,101 +339,113 @@ export default function KYCReviewPage({ params }: { params: { applicationId: str
           </Card>
         </div>
 
-        {/* Right column: Decisions & review data */}
+        {/* Right Column: Decisions & Audit Profile */}
         <div className="lg:col-span-1 space-y-6">
-          <Card className="border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-950">
-            <CardHeader>
-              <CardTitle className="text-base font-bold">Applicant Details</CardTitle>
-              <CardDescription>Verified personal credentials</CardDescription>
+          <Card className="border-slate-200/80 bg-white dark:border-slate-800 dark:bg-slate-950 shadow-sm h-full">
+            <CardHeader className="border-b border-slate-100 dark:border-slate-800/60 pb-4">
+              <CardTitle className="text-sm font-bold text-slate-900 dark:text-white">Audit Profile Dashboard</CardTitle>
+              <CardDescription>Check applicant personal data & parameters</CardDescription>
             </CardHeader>
-            <CardContent className="space-y-4 text-xs">
-              <div className="space-y-2 border-b pb-3">
-                <p className="flex justify-between">
-                  <span className="text-slate-400">FullName:</span>
-                  <span className="font-bold text-slate-700 dark:text-slate-200">{application.borrower?.fullName}</span>
-                </p>
-                <p className="flex justify-between">
-                  <span className="text-slate-400">Email:</span>
-                  <span className="font-bold text-slate-700 dark:text-slate-200">{application.borrower?.email}</span>
-                </p>
-                <p className="flex justify-between">
-                  <span className="text-slate-400">Phone:</span>
-                  <span className="font-bold text-slate-700 dark:text-slate-200">{application.borrower?.phone}</span>
-                </p>
+            <CardContent className="pt-5 space-y-5 text-xs">
+              
+              {/* Personal Info */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Personal Details</span>
+                <div className="space-y-2 bg-slate-50/50 p-3.5 rounded-2xl dark:bg-slate-900/10 border border-slate-150/40 dark:border-slate-850">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-450 flex items-center gap-1.5"><User className="h-4 w-4 text-slate-450" /> Full Name:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{application.borrower?.fullName}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-t border-slate-200/40 pt-2 dark:border-slate-800/50">
+                    <span className="text-slate-455 flex items-center gap-1.5"><Mail className="h-4 w-4 text-slate-450" /> Email Address:</span>
+                    <span className="font-semibold text-slate-700 dark:text-slate-250 truncate max-w-[140px]" title={application.borrower?.email}>{application.borrower?.email}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-t border-slate-200/40 pt-2 dark:border-slate-800/50">
+                    <span className="text-slate-455 flex items-center gap-1.5"><Phone className="h-4 w-4 text-slate-455" /> Phone:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{application.borrower?.phone}</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2 border-b pb-3">
-                <p className="flex justify-between">
-                  <span className="text-slate-400">Decrypted ID ({kyc.identityDoc?.type?.toUpperCase()}):</span>
-                  <span className="font-bold text-blue-600 dark:text-blue-400 text-sm tracking-wide bg-blue-50 px-2 py-0.5 rounded dark:bg-blue-950/20">
-                    {kyc.identityDoc?.number}
-                  </span>
-                </p>
-                {kyc.identityDoc?.expiryDate && kyc.identityDoc?.type !== "aadhaar" && kyc.identityDoc?.type !== "pan" ? (
-                  <p className="flex justify-between">
-                    <span className="text-slate-400">ID Expiry:</span>
-                    <span className="font-bold text-slate-700 dark:text-slate-200">
-                      {new Date(kyc.identityDoc?.expiryDate).toLocaleDateString("en-IN")}
+              {/* ID & Address Verification metadata */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Identity & Residency Docs</span>
+                <div className="space-y-2 bg-slate-50/50 p-3.5 rounded-2xl dark:bg-slate-900/10 border border-slate-150/40 dark:border-slate-850">
+                  <div className="flex flex-col gap-1">
+                    <span className="text-slate-450 flex items-center gap-1.5"><Fingerprint className="h-4 w-4 text-slate-450" /> Decrypted ID Number ({kyc.identityDoc?.type?.toUpperCase()}):</span>
+                    <span className="font-bold text-blue-600 dark:text-blue-400 text-sm tracking-wide bg-blue-50/80 px-3 py-1 rounded-xl dark:bg-blue-950/40 text-center w-full block mt-0.5 border border-blue-100/50 dark:border-blue-900/20">
+                      {kyc.identityDoc?.number}
                     </span>
-                  </p>
-                ) : (
-                  <p className="flex justify-between">
-                    <span className="text-slate-400">ID Expiry:</span>
-                    <span className="font-bold text-slate-400 italic">No Expiry (Lifetime Validity)</span>
-                  </p>
-                )}
-                <p className="flex justify-between">
-                  <span className="text-slate-400">Address Proof Date:</span>
-                  <span className="font-bold text-slate-700 dark:text-slate-200">
-                    {new Date(kyc.addressProof?.issuedDate).toLocaleDateString("en-IN")}
-                  </span>
-                </p>
+                  </div>
+                  <div className="flex justify-between items-center border-t border-slate-200/40 pt-2 dark:border-slate-800/50">
+                    <span className="text-slate-455 flex items-center gap-1.5"><Calendar className="h-4 w-4 text-slate-455" /> ID Expiry Date:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">
+                      {kyc.identityDoc?.expiryDate && kyc.identityDoc?.type !== "aadhaar" && kyc.identityDoc?.type !== "pan" ? (
+                        new Date(kyc.identityDoc?.expiryDate).toLocaleDateString("en-IN")
+                      ) : (
+                        <span className="text-slate-400 italic font-normal">No Expiry (Lifetime)</span>
+                      )}
+                    </span>
+                  </div>
+                  <div className="flex justify-between items-center border-t border-slate-200/40 pt-2 dark:border-slate-800/50">
+                    <span className="text-slate-455 flex items-center gap-1.5"><MapPin className="h-4 w-4 text-slate-455" /> Address Proof Issued:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">
+                      {new Date(kyc.addressProof?.issuedDate).toLocaleDateString("en-IN")}
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="space-y-2 border-b pb-3 bg-slate-50 p-3 rounded-xl dark:bg-slate-900/30">
-                <p className="flex justify-between">
-                  <span className="text-slate-400 font-medium">Loan Requested:</span>
-                  <span className="font-bold text-slate-700 dark:text-slate-200">{currency} {application.amountRequested?.toLocaleString()}</span>
-                </p>
-                <p className="flex justify-between">
-                  <span className="text-slate-400 font-medium">Purpose:</span>
-                  <span className="font-bold text-slate-700 dark:text-slate-200 capitalize">{application.purpose}</span>
-                </p>
-                <p className="flex justify-between">
-                  <span className="text-slate-400 font-medium font-bold">Requested Term:</span>
-                  <span className="font-bold text-slate-700 dark:text-slate-200">{application.tenureMonths} Months</span>
-                </p>
+              {/* Financial Profile details */}
+              <div className="space-y-2">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Financial Requirements</span>
+                <div className="space-y-2 bg-slate-50/50 p-3.5 rounded-2xl dark:bg-slate-900/10 border border-slate-150/40 dark:border-slate-850">
+                  <div className="flex justify-between items-center">
+                    <span className="text-slate-455 flex items-center gap-1.5"><DollarSign className="h-4 w-4 text-slate-455" /> Loan Requested:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{currency} {application.amountRequested?.toLocaleString()}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-t border-slate-200/40 pt-2 dark:border-slate-800/50">
+                    <span className="text-slate-455 flex items-center gap-1.5"><Activity className="h-4 w-4 text-slate-455" /> Purpose:</span>
+                    <span className="font-bold text-slate-850 dark:text-slate-200 capitalize">{application.purpose}</span>
+                  </div>
+                  <div className="flex justify-between items-center border-t border-slate-200/40 pt-2 dark:border-slate-800/50">
+                    <span className="text-slate-455 flex items-center gap-1.5"><Clock className="h-4 w-4 text-slate-455" /> Term Duration:</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{application.tenureMonths} Months</span>
+                  </div>
+                </div>
               </div>
 
-              {/* Action notes */}
-              <div className="space-y-1.5 pt-2">
-                <label className="text-xs font-semibold text-slate-500">Internal Verification Notes</label>
-                <textarea
-                  rows={3}
-                  value={notes}
-                  onChange={(e) => setNotes(e.target.value)}
-                  placeholder="Record CNIC validation notes, bank income credits confirmation..."
-                  className="flex w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-900 transition-all duration-200 focus:border-blue-500 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100"
-                />
-              </div>
+              {/* Decision Action Console */}
+              <div className="space-y-3 pt-3 border-t border-slate-100 dark:border-slate-800">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">Action Audit Console</span>
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-slate-500">Internal Verification Notes</label>
+                  <textarea
+                    rows={3}
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Record CNIC validation notes, bank income credits confirmation..."
+                    className="flex w-full rounded-xl border border-slate-200 bg-white px-3.5 py-3 text-xs text-slate-900 transition-all duration-200 focus:border-blue-500 focus:outline-none dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 placeholder:text-slate-400 focus:ring-2 focus:ring-blue-500/10"
+                  />
+                </div>
 
-              {/* Action buttons */}
-              <div className="flex gap-2 pt-2">
-                <Button
-                  variant="destructive"
-                  className="flex-1 text-xs h-10 flex items-center justify-center gap-1 bg-red-600 hover:bg-red-700 text-white"
-                  onClick={handleReject}
-                  isLoading={isRejecting}
-                >
-                  <X className="h-4 w-4" /> Reject KYC
-                </Button>
-                <Button
-                  className="flex-1 text-xs h-10 flex items-center justify-center gap-1 bg-green-600 hover:bg-green-700 text-white"
-                  onClick={handleApprove}
-                  isLoading={isApproving}
-                >
-                  <Check className="h-4 w-4" /> Approve KYC
-                </Button>
+                <div className="flex gap-3 pt-1">
+                  <Button
+                    variant="destructive"
+                    className="flex-1 text-xs h-10 flex items-center justify-center gap-1.5 bg-red-650 hover:bg-red-700 text-white rounded-xl transition-all shadow-sm"
+                    onClick={handleReject}
+                    isLoading={isRejecting}
+                  >
+                    <X className="h-4 w-4" /> Reject KYC
+                  </Button>
+                  <Button
+                    className="flex-1 text-xs h-10 flex items-center justify-center gap-1.5 bg-green-600 hover:bg-green-700 text-white rounded-xl transition-all shadow-sm"
+                    onClick={handleApprove}
+                    isLoading={isApproving}
+                  >
+                    <Check className="h-4 w-4" /> Approve KYC
+                  </Button>
+                </div>
               </div>
             </CardContent>
           </Card>

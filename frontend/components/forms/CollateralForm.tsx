@@ -15,6 +15,8 @@ export default function CollateralForm() {
   const { wizardData, updateWizardData, setWizardStep } = useAppStore();
   const currency = process.env.NEXT_PUBLIC_CURRENCY || "₹";
   const [files, setFiles] = useState<Record<string, File | null>>({
+    asset_image: null,
+    blank_cheque: null,
     ownership_deed: null,
     valuation_report: null,
     registration: null,
@@ -54,17 +56,19 @@ export default function CollateralForm() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const onSubmit = async (data: CollateralInput) => {
-    // Check if at least one ownership document is uploaded or exists on the server
-    const hasDoc = Object.keys(files).some((k) => !!files[k]) ||
-      !!wizardData.ownership_deedUrl ||
-      !!wizardData.valuation_reportUrl ||
-      !!wizardData.registrationUrl ||
-      !!wizardData.insuranceUrl ||
-      !!wizardData.otherUrl;
-
-    if (!hasDoc) {
-      toast.error("Please upload at least one supporting document (e.g. Ownership Deed, Registration, or Valuation Report)");
-      return;
+    // Validate mandatory asset image or blank cheque scan
+    if (data.type === "blank_cheque") {
+      const hasCheque = !!files.blank_cheque || !!wizardData.blank_chequeUrl;
+      if (!hasCheque) {
+        toast.error("Please upload a scan/photo of the Blank Cheque as mandatory proof.");
+        return;
+      }
+    } else {
+      const hasAssetImage = !!files.asset_image || !!wizardData.asset_imageUrl;
+      if (!hasAssetImage) {
+        toast.error("Please upload an image/photo of the collateral asset as mandatory proof.");
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -111,6 +115,8 @@ export default function CollateralForm() {
         collateralFiles: files,
 
         // Update URLs
+        asset_imageUrl: updatedDocsUrls.asset_imageUrl || wizardData.asset_imageUrl,
+        blank_chequeUrl: updatedDocsUrls.blank_chequeUrl || wizardData.blank_chequeUrl,
         ownership_deedUrl: updatedDocsUrls.ownership_deedUrl || wizardData.ownership_deedUrl,
         valuation_reportUrl: updatedDocsUrls.valuation_reportUrl || wizardData.valuation_reportUrl,
         registrationUrl: updatedDocsUrls.registrationUrl || wizardData.registrationUrl,
@@ -127,6 +133,110 @@ export default function CollateralForm() {
       setIsSubmitting(false);
     }
   };
+
+  // Dynamic labels and placeholders based on collateralType
+  const getFieldLabels = () => {
+    switch (collateralType) {
+      case "real_estate":
+        return {
+          valueLabel: `Estimated Market Value (${currency})`,
+          valuePlaceholder: "e.g. 5000000",
+          locationLabel: "Property Address & Location",
+          locationPlaceholder: "e.g. Plot 4B, Phase 6 DHA, Karachi",
+          regLabel: "Registry / Deed / Khata Number",
+          regPlaceholder: "e.g. REG-789-2024",
+          showLocation: true,
+          showReg: true,
+          descPlaceholder: "Describe the property size, condition, and any specific landmarks...",
+        };
+      case "vehicle":
+        return {
+          valueLabel: `Estimated Vehicle Value (${currency})`,
+          valuePlaceholder: "e.g. 1500000",
+          locationLabel: "Registration City / Current Location",
+          locationPlaceholder: "e.g. Lahore, Punjab",
+          regLabel: "Vehicle Registration / Chassis Number",
+          regPlaceholder: "e.g. LE-24-4903",
+          showLocation: true,
+          showReg: true,
+          descPlaceholder: "Describe the make, model, year, mileage, and general condition...",
+        };
+      case "blank_cheque":
+        return {
+          valueLabel: `Cheque Guarantee Value / Max Limit (${currency})`,
+          valuePlaceholder: "e.g. 500000 (Nominal guarantee amount)",
+          locationLabel: "Bank Name & Branch",
+          locationPlaceholder: "e.g. HBL Mall Road Branch, Lahore",
+          regLabel: "Cheque Number & Account Number",
+          regPlaceholder: "e.g. Chq: 98765432, Acc: 1234567890",
+          showLocation: true,
+          showReg: true,
+          descPlaceholder: "Provide bank account holder name, cheque book details, and any terms...",
+        };
+      case "gold":
+        return {
+          valueLabel: `Estimated Gold Value (${currency})`,
+          valuePlaceholder: "e.g. 300000",
+          locationLabel: "Current Location (e.g. Self Custody / Bank Locker)",
+          locationPlaceholder: "e.g. Bank Locker, DHA Branch",
+          regLabel: "Gold Certificate / Receipt Number (If any)",
+          regPlaceholder: "e.g. GLD-8821",
+          showLocation: true,
+          showReg: true,
+          descPlaceholder: "Describe the gold weight in grams, purity in Karats (e.g., 22K), ornaments description...",
+        };
+      case "fixed_deposit":
+        return {
+          valueLabel: `Fixed Deposit Principal Value (${currency})`,
+          valuePlaceholder: "e.g. 1000000",
+          locationLabel: "Issuing Bank Name & Branch",
+          locationPlaceholder: "e.g. Allied Bank, Gulberg Branch",
+          regLabel: "FD Receipt / Account Number",
+          regPlaceholder: "e.g. FDR-456789-2026",
+          showLocation: true,
+          showReg: true,
+          descPlaceholder: "Describe FD maturity date, interest rate, issuing branch, and nominee details...",
+        };
+      case "shares":
+        return {
+          valueLabel: `Current Portfolio Value (${currency})`,
+          valuePlaceholder: "e.g. 800000",
+          locationLabel: "Brokerage House / CDC Custodian Name",
+          locationPlaceholder: "e.g. CDC Pakistan / KASB Securities",
+          regLabel: "CDC Account / Folio Number",
+          regPlaceholder: "e.g. CDC-9876-21",
+          showLocation: true,
+          showReg: true,
+          descPlaceholder: "Describe the ticker symbols, number of shares, and broker details...",
+        };
+      case "machinery":
+        return {
+          valueLabel: `Estimated Machinery Value (${currency})`,
+          valuePlaceholder: "e.g. 1200000",
+          locationLabel: "Factory / Storage Location",
+          locationPlaceholder: "e.g. Industrial Area Phase 1, Islamabad",
+          regLabel: "Serial / Purchase Invoice Number",
+          regPlaceholder: "e.g. SN-MAC-5542",
+          showLocation: true,
+          showReg: true,
+          descPlaceholder: "Describe the machine type, model, manufacturer, year, and operational status...",
+        };
+      default:
+        return {
+          valueLabel: `Estimated Market Value (${currency})`,
+          valuePlaceholder: "e.g. 500000",
+          locationLabel: "Asset Storage Location / Address",
+          locationPlaceholder: "e.g. Main Warehouse, Karachi",
+          regLabel: "Asset Registration / Serial Number (If any)",
+          regPlaceholder: "e.g. SN-998877",
+          showLocation: true,
+          showReg: true,
+          descPlaceholder: "Describe the asset, standard of gold (karats), model of vehicle, or size of property...",
+        };
+    }
+  };
+
+  const labels = getFieldLabels();
 
   const FileSelector = ({ id, label, required = false }: { id: string; label: string; required?: boolean }) => {
     const isSelected = !!files[id];
@@ -208,6 +318,7 @@ export default function CollateralForm() {
             <option value="fixed_deposit">Fixed Deposit Receipts</option>
             <option value="shares">Listed Equities / Shares</option>
             <option value="machinery">Industrial Machinery</option>
+            <option value="blank_cheque">Blank Cheque</option>
             <option value="other">Other Assets</option>
           </Select>
           {errors.type && (
@@ -219,10 +330,12 @@ export default function CollateralForm() {
           <>
             {/* Estimated Value */}
             <div className="space-y-1.5">
-              <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Estimated Market Value ({currency})</label>
+              <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                {labels.valueLabel} <span className="text-red-500">*</span>
+              </label>
               <Input
                 type="number"
-                placeholder="e.g. 500000"
+                placeholder={labels.valuePlaceholder}
                 error={!!errors.estimatedValue}
                 {...register("estimatedValue")}
               />
@@ -231,13 +344,15 @@ export default function CollateralForm() {
               )}
             </div>
 
-            {/* Location for Real Estate */}
-            {collateralType === "real_estate" && (
+            {/* Location */}
+            {labels.showLocation && (
               <div className="space-y-1.5 md:col-span-2">
-                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Property Address & Location</label>
+                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  {labels.locationLabel}
+                </label>
                 <Input
                   type="text"
-                  placeholder="e.g. Plot 4B, Phase 6 DHA, Karachi, Pakistan"
+                  placeholder={labels.locationPlaceholder}
                   error={!!errors.location}
                   {...register("location")}
                 />
@@ -247,13 +362,15 @@ export default function CollateralForm() {
               </div>
             )}
 
-            {/* Registration Number for Vehicle */}
-            {collateralType === "vehicle" && (
+            {/* Registration Number */}
+            {labels.showReg && (
               <div className="space-y-1.5 md:col-span-2">
-                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Vehicle Registration / Chassis Number</label>
+                <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                  {labels.regLabel}
+                </label>
                 <Input
                   type="text"
-                  placeholder="e.g. LE-24-4903"
+                  placeholder={labels.regPlaceholder}
                   error={!!errors.registrationNumber}
                   {...register("registrationNumber")}
                 />
@@ -265,10 +382,12 @@ export default function CollateralForm() {
 
             {/* Description */}
             <div className="space-y-1.5 md:col-span-2">
-              <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">Asset Description & Condition</label>
+              <label className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                Asset Description & Details <span className="text-red-500">*</span>
+              </label>
               <textarea
                 rows={3}
-                placeholder="Describe the asset, standard of gold (karats), model of vehicle, or size of property..."
+                placeholder={labels.descPlaceholder}
                 className="flex w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 transition-all duration-200 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/10 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-slate-950 dark:text-slate-100 dark:placeholder:text-slate-500 dark:focus:border-blue-500"
                 {...register("description")}
               />
@@ -286,13 +405,24 @@ export default function CollateralForm() {
           <h3 className="text-sm font-bold text-slate-900 dark:text-white pb-2">
             Supporting Collateral Documents
           </h3>
-          <p className="text-xs text-slate-500 -mt-2">Upload proof of ownership, valuation reports, registry deed or insurance coverage papers.</p>
+          <p className="text-xs text-slate-500 -mt-2">
+            {collateralType === "blank_cheque"
+              ? "Please upload a photo/scan of the blank cheque as mandatory proof."
+              : "Please upload an image of the asset as mandatory proof, along with other supporting documents."}
+          </p>
           
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-            <FileSelector id="ownership_deed" label="Upload Ownership Deed / Gold Receipt" />
-            <FileSelector id="valuation_report" label="Upload Asset Valuation Report" />
-            <FileSelector id="registration" label="Upload Registration Book / Shares Statement" />
-            <FileSelector id="insurance" label="Upload Insurance Policy Document (If any)" />
+            {collateralType === "blank_cheque" ? (
+              <FileSelector id="blank_cheque" label="Upload Scan of Blank Cheque" required={true} />
+            ) : (
+              <>
+                <FileSelector id="asset_image" label="Upload Asset Image / Photo Proof" required={true} />
+                <FileSelector id="ownership_deed" label="Upload Ownership Deed / Gold Receipt" />
+                <FileSelector id="valuation_report" label="Upload Asset Valuation Report" />
+                <FileSelector id="registration" label="Upload Registration Book / Shares Statement" />
+                <FileSelector id="insurance" label="Upload Insurance Policy Document (If any)" />
+              </>
+            )}
           </div>
         </div>
       )}

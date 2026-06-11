@@ -131,28 +131,30 @@ export default function ReportsPage() {
               <CardDescription>Loan disbursements breakdown by borrower purpose</CardDescription>
             </CardHeader>
             <CardContent className="h-72">
-              <ResponsiveContainer width="100%" height="100%">
-                <PieChart>
-                  <Pie
-                    data={report.purposeBreakdown}
-                    cx="50%"
-                    cy="45%"
-                    innerRadius={60}
-                    outerRadius={80}
-                    paddingAngle={3}
-                    dataKey="value"
-                  >
-                    {report.purposeBreakdown.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    contentStyle={{ borderRadius: "12px", border: "1px solid #e2e8f0" }}
-                    formatter={(value: any) => [`${currency} ${Number(value).toLocaleString()}`]}
-                  />
-                  <Legend verticalAlign="bottom" height={36} iconType="circle" style={{ fontSize: "11px" }} />
-                </PieChart>
-              </ResponsiveContainer>
+              <div className="w-full h-full min-w-0 min-h-0 relative">
+                <ResponsiveContainer width="100%" height="100%" minWidth={0} minHeight={0}>
+                  <PieChart>
+                    <Pie
+                      data={report.purposeBreakdown}
+                      cx="50%"
+                      cy="45%"
+                      innerRadius={60}
+                      outerRadius={80}
+                      paddingAngle={3}
+                      dataKey="value"
+                    >
+                      {report.purposeBreakdown.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      contentStyle={{ borderRadius: "12px", border: "1px solid #e2e8f0" }}
+                      formatter={(value: any) => [`${currency} ${Number(value).toLocaleString()}`]}
+                    />
+                    <Legend verticalAlign="bottom" height={36} iconType="circle" style={{ fontSize: "11px" }} />
+                  </PieChart>
+                </ResponsiveContainer>
+              </div>
             </CardContent>
           </Card>
         </div>

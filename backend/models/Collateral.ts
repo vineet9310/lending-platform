@@ -3,7 +3,7 @@ import { IUser } from "./User";
 import { ILoanApplication } from "./LoanApplication";
 
 export interface ICollateralDoc {
-  docType: 'ownership_deed' | 'valuation_report' | 'registration' | 'insurance' | 'other';
+  docType: 'ownership_deed' | 'valuation_report' | 'registration' | 'insurance' | 'other' | 'blank_cheque' | 'asset_image';
   fileUrl: string;
   uploadedAt: Date;
 }
@@ -19,7 +19,7 @@ export interface IValuationReport {
 export interface ICollateral extends Document {
   application: mongoose.Types.ObjectId | ILoanApplication;
   borrower: mongoose.Types.ObjectId | IUser;
-  type: 'real_estate' | 'gold' | 'vehicle' | 'fixed_deposit' | 'shares' | 'machinery' | 'other';
+  type: 'real_estate' | 'gold' | 'vehicle' | 'fixed_deposit' | 'shares' | 'machinery' | 'other' | 'blank_cheque';
   description: string;
   estimatedValue: number;
   currency: string;
@@ -40,7 +40,7 @@ export interface ICollateral extends Document {
 const CollateralDocSchema = new Schema<ICollateralDoc>({
   docType: {
     type: String,
-    enum: ['ownership_deed', 'valuation_report', 'registration', 'insurance', 'other'],
+    enum: ['ownership_deed', 'valuation_report', 'registration', 'insurance', 'other', 'blank_cheque', 'asset_image'],
     required: true,
   },
   fileUrl: { type: String, required: true },
@@ -61,7 +61,7 @@ const CollateralSchema = new Schema<ICollateral>(
     borrower: { type: Schema.Types.ObjectId, ref: "User", required: true },
     type: {
       type: String,
-      enum: ['real_estate', 'gold', 'vehicle', 'fixed_deposit', 'shares', 'machinery', 'other'],
+      enum: ['real_estate', 'gold', 'vehicle', 'fixed_deposit', 'shares', 'machinery', 'other', 'blank_cheque'],
       required: true,
     },
     description: { type: String, required: true },

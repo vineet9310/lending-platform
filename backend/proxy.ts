@@ -6,7 +6,7 @@ export function proxy(request: NextRequest) {
   const timestamp = new Date().toISOString();
 
   // Print backend API hit logs
-  console.log(`[BACKEND API HIT] [${timestamp}] ${request.method} ${pathname}`);
+  console.log(`${request.method} ${pathname}`);
 
   return NextResponse.next();
 }

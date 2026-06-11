@@ -1,28 +1,94 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  --font-sans: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+  
+  /* Map slate to professional zinc-charcoal colors */
+  --color-slate-50: #fafafa;
+  --color-slate-100: #f4f4f5;
+  --color-slate-200: #e4e4e7;
+  --color-slate-300: #d4d4d8;
+  --color-slate-400: #a1a1aa;
+  --color-slate-500: #71717a;
+  --color-slate-600: #52525b;
+  --color-slate-700: #3f3f46;
+  --color-slate-800: #27272a;
+  --color-slate-900: #18181b;
+  --color-slate-950: #09090b;
+
+  /* Redefine primary blues to a premium corporate navy or royal indigo */
+  --color-blue-50: #f5f3ff;
+  --color-blue-100: #ede9fe;
+  --color-blue-200: #ddd6fe;
+  --color-blue-300: #c084fc;
+  --color-blue-400: #a855f7;
+  --color-blue-500: #8b5cf6;
+  --color-blue-600: #7c3aed;
+  --color-blue-700: #6d28d9;
+  --color-blue-800: #5b21b6;
+  --color-blue-900: #4c1d95;
+  --color-blue-950: #2e1065;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+:root {
+  --background: #fafafa;
+  --foreground: #09090b;
+
+  --slate-50: #fafafa;
+  --slate-100: #f4f4f5;
+  --slate-200: #e4e4e7;
+  --slate-300: #d4d4d8;
+  --slate-400: #a1a1aa;
+  --slate-500: #71717a;
+  --slate-600: #52525b;
+  --slate-700: #3f3f46;
+  --slate-800: #27272a;
+  --slate-900: #18181b;
+  --slate-950: #09090b;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --background: #fafafa;
+    --foreground: #09090b;
+
+    /* Inverse map dark colors to light, and light colors to dark so dark: classes render light */
+    --slate-50: #09090b;
+    --slate-100: #18181b;
+    --slate-200: #27272a;
+    --slate-300: #3f3f46;
+    --slate-400: #71717a;
+    --slate-500: #a1a1aa;
+    --slate-600: #d4d4d8;
+    --slate-700: #e4e4e7;
+    --slate-800: #f4f4f5;
+    --slate-900: #fafafa;
+    --slate-950: #fafafa;
   }
+}
+
+.dark {
+  --background: #fafafa;
+  --foreground: #09090b;
+
+  /* Inverse map dark colors to light, and light colors to dark so dark: classes render light */
+  --slate-50: #09090b;
+  --slate-100: #18181b;
+  --slate-200: #27272a;
+  --slate-300: #3f3f46;
+  --slate-400: #71717a;
+  --slate-500: #a1a1aa;
+  --slate-600: #d4d4d8;
+  --slate-700: #e4e4e7;
+  --slate-800: #f4f4f5;
+  --slate-900: #fafafa;
+  --slate-950: #fafafa;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
 
 /* Make entire date input clickable and hide native Webkit calendar indicator */

@@ -37,8 +37,8 @@ interface Loan {
   nocGenerated: boolean;
 }
 
-export default function EMISchedulePage({ params }: { params: { loanId: string } }) {
-  const { loanId } = params;
+export default function EMISchedulePage({ params }: { params: Promise<{ loanId: string }> }) {
+  const { loanId } = React.use(params);
   const { data: session } = useSession();
   const router = useRouter();
 

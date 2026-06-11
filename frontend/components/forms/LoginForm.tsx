@@ -67,7 +67,21 @@ export default function LoginForm() {
       
       if (session?.user) {
         const role = session.user.role;
+        
+        // Validate if callbackUrl is appropriate for the user's role
+        let isValidCallback = false;
         if (callbackUrl) {
+          const path = decodeURIComponent(callbackUrl);
+          if (role === "borrower" && path.startsWith("/borrower")) {
+            isValidCallback = true;
+          } else if (role === "agent" && path.startsWith("/agent")) {
+            isValidCallback = true;
+          } else if ((role === "admin" || role === "superadmin") && (path.startsWith("/admin") || path.startsWith("/agent"))) {
+            isValidCallback = true;
+          }
+        }
+
+        if (isValidCallback) {
           router.push(callbackUrl);
         } else if (role === "admin" || role === "superadmin") {
           router.push("/admin/dashboard");

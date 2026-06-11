@@ -35,13 +35,18 @@ export async function uploadFile(
 ): Promise<UploadResponse> {
   if (isCloudinaryConfigured) {
     try {
+      const sanitizedName = path.parse(fileName).name
+        .replace(/[^a-zA-Z0-9_-]/g, "_") // Replace spaces and special characters with underscores
+        .replace(/__+/g, "_")            // Collapse multiple underscores
+        .substring(0, 80);               // Restrict name length to prevent overly long public_ids
+
       const result = await Promise.race([
         new Promise<any>((resolve, reject) => {
           const uploadStream = cloudinary.uploader.upload_stream(
             {
               folder,
               resource_type: "auto",
-              public_id: path.parse(fileName).name + "_" + Date.now(),
+              public_id: `${sanitizedName}_${Date.now()}`,
             },
             (error, result) => {
               if (error) reject(error);
@@ -51,7 +56,7 @@ export async function uploadFile(
           uploadStream.end(fileBuffer);
         }),
         new Promise<never>((_, reject) =>
-          setTimeout(() => reject(new Error("Cloudinary upload timed out")), 4000)
+          setTimeout(() => reject(new Error("Cloudinary upload timed out")), 15000) // Increased timeout to 15s for slower networks
         )
       ]);
 

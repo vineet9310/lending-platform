@@ -43,8 +43,8 @@ interface Collateral {
   };
 }
 
-export default function CollateralVerifyPage({ params }: { params: { applicationId: string } }) {
-  const { applicationId } = params;
+export default function CollateralVerifyPage({ params }: { params: Promise<{ applicationId: string }> }) {
+  const { applicationId } = React.use(params);
   const router = useRouter();
 
   const [application, setApplication] = useState<Application | null>(null);
